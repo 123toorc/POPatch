@@ -1,0 +1,5866 @@
+diff -uprN 4.14.79/arch/x86/entry/syscalls/syscall_64.tbl 4.14.79_popcorn/arch/x86/entry/syscalls/syscall_64.tbl
+--- 4.14.79/arch/x86/entry/syscalls/syscall_64.tbl	2018-11-04 08:52:51.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/entry/syscalls/syscall_64.tbl	2020-05-24 22:41:27.706914955 -0400
+@@ -339,7 +339,10 @@
+ 330	common	pkey_alloc		sys_pkey_alloc
+ 331	common	pkey_free		sys_pkey_free
+ 332	common	statx			sys_statx
+-
++340 64	popcorn_migrate			sys_popcorn_migrate
++341 64	popcorn_propose_migration	sys_popcorn_propose_migration
++342 64	popcorn_get_thread_status	sys_popcorn_get_thread_status
++343 64	popcorn_get_node_info		sys_popcorn_get_node_info
+ #
+ # x32-specific system call numbers start at 512 to avoid cache impact
+ # for native 64-bit operation.
+diff -uprN 4.14.79/arch/x86/entry/syscalls/syscall_64.tbl.orig 4.14.79_popcorn/arch/x86/entry/syscalls/syscall_64.tbl.orig
+--- 4.14.79/arch/x86/entry/syscalls/syscall_64.tbl.orig	1969-12-31 19:00:00.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/entry/syscalls/syscall_64.tbl.orig	2020-05-24 22:41:27.706914955 -0400
+@@ -0,0 +1,382 @@
++#
++# 64-bit system call numbers and entry vectors
++#
++# The format is:
++# <number> <abi> <name> <entry point>
++#
++# The abi is "common", "64" or "x32" for this file.
++#
++0	common	read			sys_read
++1	common	write			sys_write
++2	common	open			sys_open
++3	common	close			sys_close
++4	common	stat			sys_newstat
++5	common	fstat			sys_newfstat
++6	common	lstat			sys_newlstat
++7	common	poll			sys_poll
++8	common	lseek			sys_lseek
++9	common	mmap			sys_mmap
++10	common	mprotect		sys_mprotect
++11	common	munmap			sys_munmap
++12	common	brk			sys_brk
++13	64	rt_sigaction		sys_rt_sigaction
++14	common	rt_sigprocmask		sys_rt_sigprocmask
++15	64	rt_sigreturn		sys_rt_sigreturn/ptregs
++16	64	ioctl			sys_ioctl
++17	common	pread64			sys_pread64
++18	common	pwrite64		sys_pwrite64
++19	64	readv			sys_readv
++20	64	writev			sys_writev
++21	common	access			sys_access
++22	common	pipe			sys_pipe
++23	common	select			sys_select
++24	common	sched_yield		sys_sched_yield
++25	common	mremap			sys_mremap
++26	common	msync			sys_msync
++27	common	mincore			sys_mincore
++28	common	madvise			sys_madvise
++29	common	shmget			sys_shmget
++30	common	shmat			sys_shmat
++31	common	shmctl			sys_shmctl
++32	common	dup			sys_dup
++33	common	dup2			sys_dup2
++34	common	pause			sys_pause
++35	common	nanosleep		sys_nanosleep
++36	common	getitimer		sys_getitimer
++37	common	alarm			sys_alarm
++38	common	setitimer		sys_setitimer
++39	common	getpid			sys_getpid
++40	common	sendfile		sys_sendfile64
++41	common	socket			sys_socket
++42	common	connect			sys_connect
++43	common	accept			sys_accept
++44	common	sendto			sys_sendto
++45	64	recvfrom		sys_recvfrom
++46	64	sendmsg			sys_sendmsg
++47	64	recvmsg			sys_recvmsg
++48	common	shutdown		sys_shutdown
++49	common	bind			sys_bind
++50	common	listen			sys_listen
++51	common	getsockname		sys_getsockname
++52	common	getpeername		sys_getpeername
++53	common	socketpair		sys_socketpair
++54	64	setsockopt		sys_setsockopt
++55	64	getsockopt		sys_getsockopt
++56	common	clone			sys_clone/ptregs
++57	common	fork			sys_fork/ptregs
++58	common	vfork			sys_vfork/ptregs
++59	64	execve			sys_execve/ptregs
++60	common	exit			sys_exit
++61	common	wait4			sys_wait4
++62	common	kill			sys_kill
++63	common	uname			sys_newuname
++64	common	semget			sys_semget
++65	common	semop			sys_semop
++66	common	semctl			sys_semctl
++67	common	shmdt			sys_shmdt
++68	common	msgget			sys_msgget
++69	common	msgsnd			sys_msgsnd
++70	common	msgrcv			sys_msgrcv
++71	common	msgctl			sys_msgctl
++72	common	fcntl			sys_fcntl
++73	common	flock			sys_flock
++74	common	fsync			sys_fsync
++75	common	fdatasync		sys_fdatasync
++76	common	truncate		sys_truncate
++77	common	ftruncate		sys_ftruncate
++78	common	getdents		sys_getdents
++79	common	getcwd			sys_getcwd
++80	common	chdir			sys_chdir
++81	common	fchdir			sys_fchdir
++82	common	rename			sys_rename
++83	common	mkdir			sys_mkdir
++84	common	rmdir			sys_rmdir
++85	common	creat			sys_creat
++86	common	link			sys_link
++87	common	unlink			sys_unlink
++88	common	symlink			sys_symlink
++89	common	readlink		sys_readlink
++90	common	chmod			sys_chmod
++91	common	fchmod			sys_fchmod
++92	common	chown			sys_chown
++93	common	fchown			sys_fchown
++94	common	lchown			sys_lchown
++95	common	umask			sys_umask
++96	common	gettimeofday		sys_gettimeofday
++97	common	getrlimit		sys_getrlimit
++98	common	getrusage		sys_getrusage
++99	common	sysinfo			sys_sysinfo
++100	common	times			sys_times
++101	64	ptrace			sys_ptrace
++102	common	getuid			sys_getuid
++103	common	syslog			sys_syslog
++104	common	getgid			sys_getgid
++105	common	setuid			sys_setuid
++106	common	setgid			sys_setgid
++107	common	geteuid			sys_geteuid
++108	common	getegid			sys_getegid
++109	common	setpgid			sys_setpgid
++110	common	getppid			sys_getppid
++111	common	getpgrp			sys_getpgrp
++112	common	setsid			sys_setsid
++113	common	setreuid		sys_setreuid
++114	common	setregid		sys_setregid
++115	common	getgroups		sys_getgroups
++116	common	setgroups		sys_setgroups
++117	common	setresuid		sys_setresuid
++118	common	getresuid		sys_getresuid
++119	common	setresgid		sys_setresgid
++120	common	getresgid		sys_getresgid
++121	common	getpgid			sys_getpgid
++122	common	setfsuid		sys_setfsuid
++123	common	setfsgid		sys_setfsgid
++124	common	getsid			sys_getsid
++125	common	capget			sys_capget
++126	common	capset			sys_capset
++127	64	rt_sigpending		sys_rt_sigpending
++128	64	rt_sigtimedwait		sys_rt_sigtimedwait
++129	64	rt_sigqueueinfo		sys_rt_sigqueueinfo
++130	common	rt_sigsuspend		sys_rt_sigsuspend
++131	64	sigaltstack		sys_sigaltstack
++132	common	utime			sys_utime
++133	common	mknod			sys_mknod
++134	64	uselib
++135	common	personality		sys_personality
++136	common	ustat			sys_ustat
++137	common	statfs			sys_statfs
++138	common	fstatfs			sys_fstatfs
++139	common	sysfs			sys_sysfs
++140	common	getpriority		sys_getpriority
++141	common	setpriority		sys_setpriority
++142	common	sched_setparam		sys_sched_setparam
++143	common	sched_getparam		sys_sched_getparam
++144	common	sched_setscheduler	sys_sched_setscheduler
++145	common	sched_getscheduler	sys_sched_getscheduler
++146	common	sched_get_priority_max	sys_sched_get_priority_max
++147	common	sched_get_priority_min	sys_sched_get_priority_min
++148	common	sched_rr_get_interval	sys_sched_rr_get_interval
++149	common	mlock			sys_mlock
++150	common	munlock			sys_munlock
++151	common	mlockall		sys_mlockall
++152	common	munlockall		sys_munlockall
++153	common	vhangup			sys_vhangup
++154	common	modify_ldt		sys_modify_ldt
++155	common	pivot_root		sys_pivot_root
++156	64	_sysctl			sys_sysctl
++157	common	prctl			sys_prctl
++158	common	arch_prctl		sys_arch_prctl
++159	common	adjtimex		sys_adjtimex
++160	common	setrlimit		sys_setrlimit
++161	common	chroot			sys_chroot
++162	common	sync			sys_sync
++163	common	acct			sys_acct
++164	common	settimeofday		sys_settimeofday
++165	common	mount			sys_mount
++166	common	umount2			sys_umount
++167	common	swapon			sys_swapon
++168	common	swapoff			sys_swapoff
++169	common	reboot			sys_reboot
++170	common	sethostname		sys_sethostname
++171	common	setdomainname		sys_setdomainname
++172	common	iopl			sys_iopl/ptregs
++173	common	ioperm			sys_ioperm
++174	64	create_module
++175	common	init_module		sys_init_module
++176	common	delete_module		sys_delete_module
++177	64	get_kernel_syms
++178	64	query_module
++179	common	quotactl		sys_quotactl
++180	64	nfsservctl
++181	common	getpmsg
++182	common	putpmsg
++183	common	afs_syscall
++184	common	tuxcall
++185	common	security
++186	common	gettid			sys_gettid
++187	common	readahead		sys_readahead
++188	common	setxattr		sys_setxattr
++189	common	lsetxattr		sys_lsetxattr
++190	common	fsetxattr		sys_fsetxattr
++191	common	getxattr		sys_getxattr
++192	common	lgetxattr		sys_lgetxattr
++193	common	fgetxattr		sys_fgetxattr
++194	common	listxattr		sys_listxattr
++195	common	llistxattr		sys_llistxattr
++196	common	flistxattr		sys_flistxattr
++197	common	removexattr		sys_removexattr
++198	common	lremovexattr		sys_lremovexattr
++199	common	fremovexattr		sys_fremovexattr
++200	common	tkill			sys_tkill
++201	common	time			sys_time
++202	common	futex			sys_futex
++203	common	sched_setaffinity	sys_sched_setaffinity
++204	common	sched_getaffinity	sys_sched_getaffinity
++205	64	set_thread_area
++206	64	io_setup		sys_io_setup
++207	common	io_destroy		sys_io_destroy
++208	common	io_getevents		sys_io_getevents
++209	64	io_submit		sys_io_submit
++210	common	io_cancel		sys_io_cancel
++211	64	get_thread_area
++212	common	lookup_dcookie		sys_lookup_dcookie
++213	common	epoll_create		sys_epoll_create
++214	64	epoll_ctl_old
++215	64	epoll_wait_old
++216	common	remap_file_pages	sys_remap_file_pages
++217	common	getdents64		sys_getdents64
++218	common	set_tid_address		sys_set_tid_address
++219	common	restart_syscall		sys_restart_syscall
++220	common	semtimedop		sys_semtimedop
++221	common	fadvise64		sys_fadvise64
++222	64	timer_create		sys_timer_create
++223	common	timer_settime		sys_timer_settime
++224	common	timer_gettime		sys_timer_gettime
++225	common	timer_getoverrun	sys_timer_getoverrun
++226	common	timer_delete		sys_timer_delete
++227	common	clock_settime		sys_clock_settime
++228	common	clock_gettime		sys_clock_gettime
++229	common	clock_getres		sys_clock_getres
++230	common	clock_nanosleep		sys_clock_nanosleep
++231	common	exit_group		sys_exit_group
++232	common	epoll_wait		sys_epoll_wait
++233	common	epoll_ctl		sys_epoll_ctl
++234	common	tgkill			sys_tgkill
++235	common	utimes			sys_utimes
++236	64	vserver
++237	common	mbind			sys_mbind
++238	common	set_mempolicy		sys_set_mempolicy
++239	common	get_mempolicy		sys_get_mempolicy
++240	common	mq_open			sys_mq_open
++241	common	mq_unlink		sys_mq_unlink
++242	common	mq_timedsend		sys_mq_timedsend
++243	common	mq_timedreceive		sys_mq_timedreceive
++244	64	mq_notify		sys_mq_notify
++245	common	mq_getsetattr		sys_mq_getsetattr
++246	64	kexec_load		sys_kexec_load
++247	64	waitid			sys_waitid
++248	common	add_key			sys_add_key
++249	common	request_key		sys_request_key
++250	common	keyctl			sys_keyctl
++251	common	ioprio_set		sys_ioprio_set
++252	common	ioprio_get		sys_ioprio_get
++253	common	inotify_init		sys_inotify_init
++254	common	inotify_add_watch	sys_inotify_add_watch
++255	common	inotify_rm_watch	sys_inotify_rm_watch
++256	common	migrate_pages		sys_migrate_pages
++257	common	openat			sys_openat
++258	common	mkdirat			sys_mkdirat
++259	common	mknodat			sys_mknodat
++260	common	fchownat		sys_fchownat
++261	common	futimesat		sys_futimesat
++262	common	newfstatat		sys_newfstatat
++263	common	unlinkat		sys_unlinkat
++264	common	renameat		sys_renameat
++265	common	linkat			sys_linkat
++266	common	symlinkat		sys_symlinkat
++267	common	readlinkat		sys_readlinkat
++268	common	fchmodat		sys_fchmodat
++269	common	faccessat		sys_faccessat
++270	common	pselect6		sys_pselect6
++271	common	ppoll			sys_ppoll
++272	common	unshare			sys_unshare
++273	64	set_robust_list		sys_set_robust_list
++274	64	get_robust_list		sys_get_robust_list
++275	common	splice			sys_splice
++276	common	tee			sys_tee
++277	common	sync_file_range		sys_sync_file_range
++278	64	vmsplice		sys_vmsplice
++279	64	move_pages		sys_move_pages
++280	common	utimensat		sys_utimensat
++281	common	epoll_pwait		sys_epoll_pwait
++282	common	signalfd		sys_signalfd
++283	common	timerfd_create		sys_timerfd_create
++284	common	eventfd			sys_eventfd
++285	common	fallocate		sys_fallocate
++286	common	timerfd_settime		sys_timerfd_settime
++287	common	timerfd_gettime		sys_timerfd_gettime
++288	common	accept4			sys_accept4
++289	common	signalfd4		sys_signalfd4
++290	common	eventfd2		sys_eventfd2
++291	common	epoll_create1		sys_epoll_create1
++292	common	dup3			sys_dup3
++293	common	pipe2			sys_pipe2
++294	common	inotify_init1		sys_inotify_init1
++295	64	preadv			sys_preadv
++296	64	pwritev			sys_pwritev
++297	64	rt_tgsigqueueinfo	sys_rt_tgsigqueueinfo
++298	common	perf_event_open		sys_perf_event_open
++299	64	recvmmsg		sys_recvmmsg
++300	common	fanotify_init		sys_fanotify_init
++301	common	fanotify_mark		sys_fanotify_mark
++302	common	prlimit64		sys_prlimit64
++303	common	name_to_handle_at	sys_name_to_handle_at
++304	common	open_by_handle_at	sys_open_by_handle_at
++305	common	clock_adjtime		sys_clock_adjtime
++306	common	syncfs			sys_syncfs
++307	64	sendmmsg		sys_sendmmsg
++308	common	setns			sys_setns
++309	common	getcpu			sys_getcpu
++310	64	process_vm_readv	sys_process_vm_readv
++311	64	process_vm_writev	sys_process_vm_writev
++312	common	kcmp			sys_kcmp
++313	common	finit_module		sys_finit_module
++314	common	sched_setattr		sys_sched_setattr
++315	common	sched_getattr		sys_sched_getattr
++316	common	renameat2		sys_renameat2
++317	common	seccomp			sys_seccomp
++318	common	getrandom		sys_getrandom
++319	common	memfd_create		sys_memfd_create
++320	common	kexec_file_load		sys_kexec_file_load
++321	common	bpf			sys_bpf
++322	64	execveat		sys_execveat/ptregs
++323	common	userfaultfd		sys_userfaultfd
++324	common	membarrier		sys_membarrier
++325	common	mlock2			sys_mlock2
++326	common	copy_file_range		sys_copy_file_range
++327	64	preadv2			sys_preadv2
++328	64	pwritev2		sys_pwritev2
++329	common	pkey_mprotect		sys_pkey_mprotect
++330	common	pkey_alloc		sys_pkey_alloc
++331	common	pkey_free		sys_pkey_free
++332	common	statx			sys_statx
++
++#
++# x32-specific system call numbers start at 512 to avoid cache impact
++# for native 64-bit operation.
++#
++512	x32	rt_sigaction		compat_sys_rt_sigaction
++513	x32	rt_sigreturn		sys32_x32_rt_sigreturn
++514	x32	ioctl			compat_sys_ioctl
++515	x32	readv			compat_sys_readv
++516	x32	writev			compat_sys_writev
++517	x32	recvfrom		compat_sys_recvfrom
++518	x32	sendmsg			compat_sys_sendmsg
++519	x32	recvmsg			compat_sys_recvmsg
++520	x32	execve			compat_sys_execve/ptregs
++521	x32	ptrace			compat_sys_ptrace
++522	x32	rt_sigpending		compat_sys_rt_sigpending
++523	x32	rt_sigtimedwait		compat_sys_rt_sigtimedwait
++524	x32	rt_sigqueueinfo		compat_sys_rt_sigqueueinfo
++525	x32	sigaltstack		compat_sys_sigaltstack
++526	x32	timer_create		compat_sys_timer_create
++527	x32	mq_notify		compat_sys_mq_notify
++528	x32	kexec_load		compat_sys_kexec_load
++529	x32	waitid			compat_sys_waitid
++530	x32	set_robust_list		compat_sys_set_robust_list
++531	x32	get_robust_list		compat_sys_get_robust_list
++532	x32	vmsplice		compat_sys_vmsplice
++533	x32	move_pages		compat_sys_move_pages
++534	x32	preadv			compat_sys_preadv64
++535	x32	pwritev			compat_sys_pwritev64
++536	x32	rt_tgsigqueueinfo	compat_sys_rt_tgsigqueueinfo
++537	x32	recvmmsg		compat_sys_recvmmsg
++538	x32	sendmmsg		compat_sys_sendmmsg
++539	x32	process_vm_readv	compat_sys_process_vm_readv
++540	x32	process_vm_writev	compat_sys_process_vm_writev
++541	x32	setsockopt		compat_sys_setsockopt
++542	x32	getsockopt		compat_sys_getsockopt
++543	x32	io_setup		compat_sys_io_setup
++544	x32	io_submit		compat_sys_io_submit
++545	x32	execveat		compat_sys_execveat/ptregs
++546	x32	preadv2			compat_sys_preadv64v2
++547	x32	pwritev2		compat_sys_pwritev64v2
+diff -uprN 4.14.79/arch/x86/entry/syscalls/syscall_64.tbl.rej 4.14.79_popcorn/arch/x86/entry/syscalls/syscall_64.tbl.rej
+--- 4.14.79/arch/x86/entry/syscalls/syscall_64.tbl.rej	1969-12-31 19:00:00.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/entry/syscalls/syscall_64.tbl.rej	2020-05-24 22:41:27.706914955 -0400
+@@ -0,0 +1,13 @@
++--- arch/x86/entry/syscalls/syscall_64.tbl	2018-06-13 10:15:29.000000000 -0400
+++++ arch/x86/entry/syscalls/syscall_64.tbl	2020-03-30 16:06:48.518735993 -0400
++@@ -332,6 +332,10 @@
++ 323	common	userfaultfd		sys_userfaultfd
++ 324	common	membarrier		sys_membarrier
++ 325	common	mlock2			sys_mlock2
+++330 64	popcorn_migrate		sys_popcorn_migrate
+++331 64	popcorn_propose_migration	sys_popcorn_propose_migration
+++332 64	popcorn_get_thread_status	sys_popcorn_get_thread_status
+++333 64	popcorn_get_node_info	sys_popcorn_get_node_info
++ 
++ #
++ # x32-specific system call numbers start at 512 to avoid cache impact
+diff -uprN 4.14.79/arch/x86/.gitignore 4.14.79_popcorn/arch/x86/.gitignore
+--- 4.14.79/arch/x86/.gitignore	2018-11-04 08:52:51.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/.gitignore	2020-05-24 22:41:27.694914992 -0400
+@@ -3,4 +3,3 @@ tools/test_get_len
+ tools/insn_sanity
+ purgatory/kexec-purgatory.c
+ purgatory/purgatory.ro
+-
+diff -uprN 4.14.79/arch/x86/Kconfig 4.14.79_popcorn/arch/x86/Kconfig
+--- 4.14.79/arch/x86/Kconfig	2018-11-04 08:52:51.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/Kconfig	2020-05-24 22:41:27.694914992 -0400
+@@ -59,6 +59,7 @@ config X86
+ 	select ARCH_HAS_REFCOUNT
+ 	select ARCH_HAS_UACCESS_FLUSHCACHE	if X86_64
+ 	select ARCH_HAS_SET_MEMORY
++	select ARCH_SUPPORTS_POPCORN    if X86_64
+ 	select ARCH_HAS_SG_CHAIN
+ 	select ARCH_HAS_STRICT_KERNEL_RWX
+ 	select ARCH_HAS_STRICT_MODULE_RWX
+@@ -338,7 +339,7 @@ config PGTABLE_LEVELS
+ 
+ source "init/Kconfig"
+ source "kernel/Kconfig.freezer"
+-
++source "kernel/Kconfig.popcorn"
+ menu "Processor type and features"
+ 
+ config ZONE_DMA
+diff -uprN 4.14.79/arch/x86/Kconfig.orig 4.14.79_popcorn/arch/x86/Kconfig.orig
+--- 4.14.79/arch/x86/Kconfig.orig	1969-12-31 19:00:00.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/Kconfig.orig	2020-05-24 22:41:27.694914992 -0400
+@@ -0,0 +1,2900 @@
++# SPDX-License-Identifier: GPL-2.0
++# Select 32 or 64 bit
++config 64BIT
++	bool "64-bit kernel" if ARCH = "x86"
++	default ARCH != "i386"
++	---help---
++	  Say yes to build a 64-bit kernel - formerly known as x86_64
++	  Say no to build a 32-bit kernel - formerly known as i386
++
++config X86_32
++	def_bool y
++	depends on !64BIT
++	# Options that are inherently 32-bit kernel only:
++	select ARCH_WANT_IPC_PARSE_VERSION
++	select CLKSRC_I8253
++	select CLONE_BACKWARDS
++	select HAVE_AOUT
++	select HAVE_GENERIC_DMA_COHERENT
++	select MODULES_USE_ELF_REL
++	select OLD_SIGACTION
++
++config X86_64
++	def_bool y
++	depends on 64BIT
++	# Options that are inherently 64-bit kernel only:
++	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
++	select ARCH_SUPPORTS_INT128
++	select ARCH_USE_CMPXCHG_LOCKREF
++	select HAVE_ARCH_SOFT_DIRTY
++	select MODULES_USE_ELF_RELA
++	select X86_DEV_DMA_OPS
++
++#
++# Arch settings
++#
++# ( Note that options that are marked 'if X86_64' could in principle be
++#   ported to 32-bit as well. )
++#
++config X86
++	def_bool y
++	#
++	# Note: keep this list sorted alphabetically
++	#
++	select ACPI_LEGACY_TABLES_LOOKUP	if ACPI
++	select ACPI_SYSTEM_POWER_STATES_SUPPORT	if ACPI
++	select ANON_INODES
++	select ARCH_CLOCKSOURCE_DATA
++	select ARCH_DISCARD_MEMBLOCK
++	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
++	select ARCH_HAS_DEBUG_VIRTUAL
++	select ARCH_HAS_DEVMEM_IS_ALLOWED
++	select ARCH_HAS_ELF_RANDOMIZE
++	select ARCH_HAS_FAST_MULTIPLIER
++	select ARCH_HAS_FORTIFY_SOURCE
++	select ARCH_HAS_GCOV_PROFILE_ALL
++	select ARCH_HAS_KCOV			if X86_64
++	select ARCH_HAS_PMEM_API		if X86_64
++	# Causing hangs/crashes, see the commit that added this change for details.
++	select ARCH_HAS_REFCOUNT
++	select ARCH_HAS_UACCESS_FLUSHCACHE	if X86_64
++	select ARCH_HAS_SET_MEMORY
++	select ARCH_SUPPORTS_POPCORN    if X86_64
++	select ARCH_HAS_SG_CHAIN
++	select ARCH_HAS_STRICT_KERNEL_RWX
++	select ARCH_HAS_STRICT_MODULE_RWX
++	select ARCH_HAS_UBSAN_SANITIZE_ALL
++	select ARCH_HAS_ZONE_DEVICE		if X86_64
++	select ARCH_HAVE_NMI_SAFE_CMPXCHG
++	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
++	select ARCH_MIGHT_HAVE_PC_PARPORT
++	select ARCH_MIGHT_HAVE_PC_SERIO
++	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
++	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
++	select ARCH_USE_BUILTIN_BSWAP
++	select ARCH_USE_QUEUED_RWLOCKS
++	select ARCH_USE_QUEUED_SPINLOCKS
++	select ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
++	select ARCH_WANTS_DYNAMIC_TASK_STRUCT
++	select ARCH_WANTS_THP_SWAP		if X86_64
++	select BUILDTIME_EXTABLE_SORT
++	select CLKEVT_I8253
++	select CLOCKSOURCE_VALIDATE_LAST_CYCLE
++	select CLOCKSOURCE_WATCHDOG
++	select DCACHE_WORD_ACCESS
++	select EDAC_ATOMIC_SCRUB
++	select EDAC_SUPPORT
++	select GENERIC_CLOCKEVENTS
++	select GENERIC_CLOCKEVENTS_BROADCAST	if X86_64 || (X86_32 && X86_LOCAL_APIC)
++	select GENERIC_CLOCKEVENTS_MIN_ADJUST
++	select GENERIC_CMOS_UPDATE
++	select GENERIC_CPU_AUTOPROBE
++	select GENERIC_CPU_VULNERABILITIES
++	select GENERIC_EARLY_IOREMAP
++	select GENERIC_FIND_FIRST_BIT
++	select GENERIC_IOMAP
++	select GENERIC_IRQ_EFFECTIVE_AFF_MASK	if SMP
++	select GENERIC_IRQ_MIGRATION		if SMP
++	select GENERIC_IRQ_PROBE
++	select GENERIC_IRQ_SHOW
++	select GENERIC_PENDING_IRQ		if SMP
++	select GENERIC_SMP_IDLE_THREAD
++	select GENERIC_STRNCPY_FROM_USER
++	select GENERIC_STRNLEN_USER
++	select GENERIC_TIME_VSYSCALL
++	select HARDLOCKUP_CHECK_TIMESTAMP	if X86_64
++	select HAVE_ACPI_APEI			if ACPI
++	select HAVE_ACPI_APEI_NMI		if ACPI
++	select HAVE_ALIGNED_STRUCT_PAGE		if SLUB
++	select HAVE_ARCH_AUDITSYSCALL
++	select HAVE_ARCH_HUGE_VMAP		if X86_64 || X86_PAE
++	select HAVE_ARCH_JUMP_LABEL
++	select HAVE_ARCH_KASAN			if X86_64
++	select HAVE_ARCH_KGDB
++	select HAVE_ARCH_MMAP_RND_BITS		if MMU
++	select HAVE_ARCH_MMAP_RND_COMPAT_BITS	if MMU && COMPAT
++	select HAVE_ARCH_COMPAT_MMAP_BASES	if MMU && COMPAT
++	select HAVE_ARCH_SECCOMP_FILTER
++	select HAVE_ARCH_TRACEHOOK
++	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
++	select HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD if X86_64
++	select HAVE_ARCH_VMAP_STACK		if X86_64
++	select HAVE_ARCH_WITHIN_STACK_FRAMES
++	select HAVE_CC_STACKPROTECTOR
++	select HAVE_CMPXCHG_DOUBLE
++	select HAVE_CMPXCHG_LOCAL
++	select HAVE_CONTEXT_TRACKING		if X86_64
++	select HAVE_COPY_THREAD_TLS
++	select HAVE_C_RECORDMCOUNT
++	select HAVE_DEBUG_KMEMLEAK
++	select HAVE_DEBUG_STACKOVERFLOW
++	select HAVE_DMA_API_DEBUG
++	select HAVE_DMA_CONTIGUOUS
++	select HAVE_DYNAMIC_FTRACE
++	select HAVE_DYNAMIC_FTRACE_WITH_REGS
++	select HAVE_EBPF_JIT			if X86_64
++	select HAVE_EFFICIENT_UNALIGNED_ACCESS
++	select HAVE_EXIT_THREAD
++	select HAVE_FENTRY			if X86_64 || DYNAMIC_FTRACE
++	select HAVE_FTRACE_MCOUNT_RECORD
++	select HAVE_FUNCTION_GRAPH_TRACER
++	select HAVE_FUNCTION_TRACER
++	select HAVE_GCC_PLUGINS
++	select HAVE_HW_BREAKPOINT
++	select HAVE_IDE
++	select HAVE_IOREMAP_PROT
++	select HAVE_IRQ_EXIT_ON_IRQ_STACK	if X86_64
++	select HAVE_IRQ_TIME_ACCOUNTING
++	select HAVE_KERNEL_BZIP2
++	select HAVE_KERNEL_GZIP
++	select HAVE_KERNEL_LZ4
++	select HAVE_KERNEL_LZMA
++	select HAVE_KERNEL_LZO
++	select HAVE_KERNEL_XZ
++	select HAVE_KPROBES
++	select HAVE_KPROBES_ON_FTRACE
++	select HAVE_KRETPROBES
++	select HAVE_KVM
++	select HAVE_LIVEPATCH			if X86_64
++	select HAVE_MEMBLOCK
++	select HAVE_MEMBLOCK_NODE_MAP
++	select HAVE_MIXED_BREAKPOINTS_REGS
++	select HAVE_MOD_ARCH_SPECIFIC
++	select HAVE_NMI
++	select HAVE_OPROFILE
++	select HAVE_OPTPROBES
++	select HAVE_PCSPKR_PLATFORM
++	select HAVE_PERF_EVENTS
++	select HAVE_PERF_EVENTS_NMI
++	select HAVE_HARDLOCKUP_DETECTOR_PERF	if PERF_EVENTS && HAVE_PERF_EVENTS_NMI
++	select HAVE_PERF_REGS
++	select HAVE_PERF_USER_STACK_DUMP
++	select HAVE_RCU_TABLE_FREE
++	select HAVE_RCU_TABLE_INVALIDATE	if HAVE_RCU_TABLE_FREE
++	select HAVE_REGS_AND_STACK_ACCESS_API
++	select HAVE_RELIABLE_STACKTRACE		if X86_64 && UNWINDER_FRAME_POINTER && STACK_VALIDATION
++	select HAVE_STACK_VALIDATION		if X86_64
++	select HAVE_SYSCALL_TRACEPOINTS
++	select HAVE_UNSTABLE_SCHED_CLOCK
++	select HAVE_USER_RETURN_NOTIFIER
++	select HOTPLUG_SMT			if SMP
++	select IRQ_FORCED_THREADING
++	select PCI_LOCKLESS_CONFIG
++	select PERF_EVENTS
++	select RTC_LIB
++	select RTC_MC146818_LIB
++	select SPARSE_IRQ
++	select SRCU
++	select SYSCTL_EXCEPTION_TRACE
++	select THREAD_INFO_IN_TASK
++	select USER_STACKTRACE_SUPPORT
++	select VIRT_TO_BUS
++	select X86_FEATURE_NAMES		if PROC_FS
++
++config INSTRUCTION_DECODER
++	def_bool y
++	depends on KPROBES || PERF_EVENTS || UPROBES
++
++config OUTPUT_FORMAT
++	string
++	default "elf32-i386" if X86_32
++	default "elf64-x86-64" if X86_64
++
++config ARCH_DEFCONFIG
++	string
++	default "arch/x86/configs/i386_defconfig" if X86_32
++	default "arch/x86/configs/x86_64_defconfig" if X86_64
++
++config LOCKDEP_SUPPORT
++	def_bool y
++
++config STACKTRACE_SUPPORT
++	def_bool y
++
++config MMU
++	def_bool y
++
++config ARCH_MMAP_RND_BITS_MIN
++	default 28 if 64BIT
++	default 8
++
++config ARCH_MMAP_RND_BITS_MAX
++	default 32 if 64BIT
++	default 16
++
++config ARCH_MMAP_RND_COMPAT_BITS_MIN
++	default 8
++
++config ARCH_MMAP_RND_COMPAT_BITS_MAX
++	default 16
++
++config SBUS
++	bool
++
++config NEED_DMA_MAP_STATE
++	def_bool y
++	depends on X86_64 || INTEL_IOMMU || DMA_API_DEBUG || SWIOTLB
++
++config NEED_SG_DMA_LENGTH
++	def_bool y
++
++config GENERIC_ISA_DMA
++	def_bool y
++	depends on ISA_DMA_API
++
++config GENERIC_BUG
++	def_bool y
++	depends on BUG
++	select GENERIC_BUG_RELATIVE_POINTERS if X86_64
++
++config GENERIC_BUG_RELATIVE_POINTERS
++	bool
++
++config GENERIC_HWEIGHT
++	def_bool y
++
++config ARCH_MAY_HAVE_PC_FDC
++	def_bool y
++	depends on ISA_DMA_API
++
++config RWSEM_XCHGADD_ALGORITHM
++	def_bool y
++
++config GENERIC_CALIBRATE_DELAY
++	def_bool y
++
++config ARCH_HAS_CPU_RELAX
++	def_bool y
++
++config ARCH_HAS_CACHE_LINE_SIZE
++	def_bool y
++
++config HAVE_SETUP_PER_CPU_AREA
++	def_bool y
++
++config NEED_PER_CPU_EMBED_FIRST_CHUNK
++	def_bool y
++
++config NEED_PER_CPU_PAGE_FIRST_CHUNK
++	def_bool y
++
++config ARCH_HIBERNATION_POSSIBLE
++	def_bool y
++
++config ARCH_SUSPEND_POSSIBLE
++	def_bool y
++
++config ARCH_WANT_HUGE_PMD_SHARE
++	def_bool y
++
++config ARCH_WANT_GENERAL_HUGETLB
++	def_bool y
++
++config ZONE_DMA32
++	def_bool y if X86_64
++
++config AUDIT_ARCH
++	def_bool y if X86_64
++
++config ARCH_SUPPORTS_OPTIMIZED_INLINING
++	def_bool y
++
++config ARCH_SUPPORTS_DEBUG_PAGEALLOC
++	def_bool y
++
++config KASAN_SHADOW_OFFSET
++	hex
++	depends on KASAN
++	default 0xdffffc0000000000
++
++config HAVE_INTEL_TXT
++	def_bool y
++	depends on INTEL_IOMMU && ACPI
++
++config X86_32_SMP
++	def_bool y
++	depends on X86_32 && SMP
++
++config X86_64_SMP
++	def_bool y
++	depends on X86_64 && SMP
++
++config X86_32_LAZY_GS
++	def_bool y
++	depends on X86_32 && !CC_STACKPROTECTOR
++
++config ARCH_SUPPORTS_UPROBES
++	def_bool y
++
++config FIX_EARLYCON_MEM
++	def_bool y
++
++config PGTABLE_LEVELS
++	int
++	default 5 if X86_5LEVEL
++	default 4 if X86_64
++	default 3 if X86_PAE
++	default 2
++
++source "init/Kconfig"
++source "kernel/Kconfig.freezer"
++source "kernel/Kconfig.popcorn"
++menu "Processor type and features"
++
++config ZONE_DMA
++	bool "DMA memory allocation support" if EXPERT
++	default y
++	help
++	  DMA memory allocation support allows devices with less than 32-bit
++	  addressing to allocate within the first 16MB of address space.
++	  Disable if no such devices will be used.
++
++	  If unsure, say Y.
++
++config SMP
++	bool "Symmetric multi-processing support"
++	---help---
++	  This enables support for systems with more than one CPU. If you have
++	  a system with only one CPU, say N. If you have a system with more
++	  than one CPU, say Y.
++
++	  If you say N here, the kernel will run on uni- and multiprocessor
++	  machines, but will use only one CPU of a multiprocessor machine. If
++	  you say Y here, the kernel will run on many, but not all,
++	  uniprocessor machines. On a uniprocessor machine, the kernel
++	  will run faster if you say N here.
++
++	  Note that if you say Y here and choose architecture "586" or
++	  "Pentium" under "Processor family", the kernel will not work on 486
++	  architectures. Similarly, multiprocessor kernels for the "PPro"
++	  architecture may not work on all Pentium based boards.
++
++	  People using multiprocessor machines who say Y here should also say
++	  Y to "Enhanced Real Time Clock Support", below. The "Advanced Power
++	  Management" code will be disabled if you say Y here.
++
++	  See also <file:Documentation/x86/i386/IO-APIC.txt>,
++	  <file:Documentation/lockup-watchdogs.txt> and the SMP-HOWTO available at
++	  <http://www.tldp.org/docs.html#howto>.
++
++	  If you don't know what to do here, say N.
++
++config X86_FEATURE_NAMES
++	bool "Processor feature human-readable names" if EMBEDDED
++	default y
++	---help---
++	  This option compiles in a table of x86 feature bits and corresponding
++	  names.  This is required to support /proc/cpuinfo and a few kernel
++	  messages.  You can disable this to save space, at the expense of
++	  making those few kernel messages show numeric feature bits instead.
++
++	  If in doubt, say Y.
++
++config X86_FAST_FEATURE_TESTS
++	bool "Fast CPU feature tests" if EMBEDDED
++	default y
++	---help---
++	  Some fast-paths in the kernel depend on the capabilities of the CPU.
++	  Say Y here for the kernel to patch in the appropriate code at runtime
++	  based on the capabilities of the CPU. The infrastructure for patching
++	  code at runtime takes up some additional space; space-constrained
++	  embedded systems may wish to say N here to produce smaller, slightly
++	  slower code.
++
++config X86_X2APIC
++	bool "Support x2apic"
++	depends on X86_LOCAL_APIC && X86_64 && (IRQ_REMAP || HYPERVISOR_GUEST)
++	---help---
++	  This enables x2apic support on CPUs that have this feature.
++
++	  This allows 32-bit apic IDs (so it can support very large systems),
++	  and accesses the local apic via MSRs not via mmio.
++
++	  If you don't know what to do here, say N.
++
++config X86_MPPARSE
++	bool "Enable MPS table" if ACPI || SFI
++	default y
++	depends on X86_LOCAL_APIC
++	---help---
++	  For old smp systems that do not have proper acpi support. Newer systems
++	  (esp with 64bit cpus) with acpi support, MADT and DSDT will override it
++
++config X86_BIGSMP
++	bool "Support for big SMP systems with more than 8 CPUs"
++	depends on X86_32 && SMP
++	---help---
++	  This option is needed for the systems that have more than 8 CPUs
++
++config GOLDFISH
++       def_bool y
++       depends on X86_GOLDFISH
++
++config RETPOLINE
++	bool "Avoid speculative indirect branches in kernel"
++	default y
++	select STACK_VALIDATION if HAVE_STACK_VALIDATION
++	help
++	  Compile kernel with the retpoline compiler options to guard against
++	  kernel-to-user data leaks by avoiding speculative indirect
++	  branches. Requires a compiler with -mindirect-branch=thunk-extern
++	  support for full protection. The kernel may run slower.
++
++	  Without compiler support, at least indirect branches in assembler
++	  code are eliminated. Since this includes the syscall entry path,
++	  it is not entirely pointless.
++
++config INTEL_RDT
++	bool "Intel Resource Director Technology support"
++	default n
++	depends on X86 && CPU_SUP_INTEL
++	select KERNFS
++	help
++	  Select to enable resource allocation and monitoring which are
++	  sub-features of Intel Resource Director Technology(RDT). More
++	  information about RDT can be found in the Intel x86
++	  Architecture Software Developer Manual.
++
++	  Say N if unsure.
++
++if X86_32
++config X86_EXTENDED_PLATFORM
++	bool "Support for extended (non-PC) x86 platforms"
++	default y
++	---help---
++	  If you disable this option then the kernel will only support
++	  standard PC platforms. (which covers the vast majority of
++	  systems out there.)
++
++	  If you enable this option then you'll be able to select support
++	  for the following (non-PC) 32 bit x86 platforms:
++		Goldfish (Android emulator)
++		AMD Elan
++		RDC R-321x SoC
++		SGI 320/540 (Visual Workstation)
++		STA2X11-based (e.g. Northville)
++		Moorestown MID devices
++
++	  If you have one of these systems, or if you want to build a
++	  generic distribution kernel, say Y here - otherwise say N.
++endif
++
++if X86_64
++config X86_EXTENDED_PLATFORM
++	bool "Support for extended (non-PC) x86 platforms"
++	default y
++	---help---
++	  If you disable this option then the kernel will only support
++	  standard PC platforms. (which covers the vast majority of
++	  systems out there.)
++
++	  If you enable this option then you'll be able to select support
++	  for the following (non-PC) 64 bit x86 platforms:
++		Numascale NumaChip
++		ScaleMP vSMP
++		SGI Ultraviolet
++
++	  If you have one of these systems, or if you want to build a
++	  generic distribution kernel, say Y here - otherwise say N.
++endif
++# This is an alphabetically sorted list of 64 bit extended platforms
++# Please maintain the alphabetic order if and when there are additions
++config X86_NUMACHIP
++	bool "Numascale NumaChip"
++	depends on X86_64
++	depends on X86_EXTENDED_PLATFORM
++	depends on NUMA
++	depends on SMP
++	depends on X86_X2APIC
++	depends on PCI_MMCONFIG
++	---help---
++	  Adds support for Numascale NumaChip large-SMP systems. Needed to
++	  enable more than ~168 cores.
++	  If you don't have one of these, you should say N here.
++
++config X86_VSMP
++	bool "ScaleMP vSMP"
++	select HYPERVISOR_GUEST
++	select PARAVIRT
++	depends on X86_64 && PCI
++	depends on X86_EXTENDED_PLATFORM
++	depends on SMP
++	---help---
++	  Support for ScaleMP vSMP systems.  Say 'Y' here if this kernel is
++	  supposed to run on these EM64T-based machines.  Only choose this option
++	  if you have one of these machines.
++
++config X86_UV
++	bool "SGI Ultraviolet"
++	depends on X86_64
++	depends on X86_EXTENDED_PLATFORM
++	depends on NUMA
++	depends on EFI
++	depends on X86_X2APIC
++	depends on PCI
++	---help---
++	  This option is needed in order to support SGI Ultraviolet systems.
++	  If you don't have one of these, you should say N here.
++
++# Following is an alphabetically sorted list of 32 bit extended platforms
++# Please maintain the alphabetic order if and when there are additions
++
++config X86_GOLDFISH
++       bool "Goldfish (Virtual Platform)"
++       depends on X86_EXTENDED_PLATFORM
++       ---help---
++	 Enable support for the Goldfish virtual platform used primarily
++	 for Android development. Unless you are building for the Android
++	 Goldfish emulator say N here.
++
++config X86_INTEL_CE
++	bool "CE4100 TV platform"
++	depends on PCI
++	depends on PCI_GODIRECT
++	depends on X86_IO_APIC
++	depends on X86_32
++	depends on X86_EXTENDED_PLATFORM
++	select X86_REBOOTFIXUPS
++	select OF
++	select OF_EARLY_FLATTREE
++	---help---
++	  Select for the Intel CE media processor (CE4100) SOC.
++	  This option compiles in support for the CE4100 SOC for settop
++	  boxes and media devices.
++
++config X86_INTEL_MID
++	bool "Intel MID platform support"
++	depends on X86_EXTENDED_PLATFORM
++	depends on X86_PLATFORM_DEVICES
++	depends on PCI
++	depends on X86_64 || (PCI_GOANY && X86_32)
++	depends on X86_IO_APIC
++	select SFI
++	select I2C
++	select DW_APB_TIMER
++	select APB_TIMER
++	select INTEL_SCU_IPC
++	select MFD_INTEL_MSIC
++	---help---
++	  Select to build a kernel capable of supporting Intel MID (Mobile
++	  Internet Device) platform systems which do not have the PCI legacy
++	  interfaces. If you are building for a PC class system say N here.
++
++	  Intel MID platforms are based on an Intel processor and chipset which
++	  consume less power than most of the x86 derivatives.
++
++config X86_INTEL_QUARK
++	bool "Intel Quark platform support"
++	depends on X86_32
++	depends on X86_EXTENDED_PLATFORM
++	depends on X86_PLATFORM_DEVICES
++	depends on X86_TSC
++	depends on PCI
++	depends on PCI_GOANY
++	depends on X86_IO_APIC
++	select IOSF_MBI
++	select INTEL_IMR
++	select COMMON_CLK
++	---help---
++	  Select to include support for Quark X1000 SoC.
++	  Say Y here if you have a Quark based system such as the Arduino
++	  compatible Intel Galileo.
++
++config X86_INTEL_LPSS
++	bool "Intel Low Power Subsystem Support"
++	depends on X86 && ACPI
++	select COMMON_CLK
++	select PINCTRL
++	select IOSF_MBI
++	---help---
++	  Select to build support for Intel Low Power Subsystem such as
++	  found on Intel Lynxpoint PCH. Selecting this option enables
++	  things like clock tree (common clock framework) and pincontrol
++	  which are needed by the LPSS peripheral drivers.
++
++config X86_AMD_PLATFORM_DEVICE
++	bool "AMD ACPI2Platform devices support"
++	depends on ACPI
++	select COMMON_CLK
++	select PINCTRL
++	---help---
++	  Select to interpret AMD specific ACPI device to platform device
++	  such as I2C, UART, GPIO found on AMD Carrizo and later chipsets.
++	  I2C and UART depend on COMMON_CLK to set clock. GPIO driver is
++	  implemented under PINCTRL subsystem.
++
++config IOSF_MBI
++	tristate "Intel SoC IOSF Sideband support for SoC platforms"
++	depends on PCI
++	---help---
++	  This option enables sideband register access support for Intel SoC
++	  platforms. On these platforms the IOSF sideband is used in lieu of
++	  MSR's for some register accesses, mostly but not limited to thermal
++	  and power. Drivers may query the availability of this device to
++	  determine if they need the sideband in order to work on these
++	  platforms. The sideband is available on the following SoC products.
++	  This list is not meant to be exclusive.
++	   - BayTrail
++	   - Braswell
++	   - Quark
++
++	  You should say Y if you are running a kernel on one of these SoC's.
++
++config IOSF_MBI_DEBUG
++	bool "Enable IOSF sideband access through debugfs"
++	depends on IOSF_MBI && DEBUG_FS
++	---help---
++	  Select this option to expose the IOSF sideband access registers (MCR,
++	  MDR, MCRX) through debugfs to write and read register information from
++	  different units on the SoC. This is most useful for obtaining device
++	  state information for debug and analysis. As this is a general access
++	  mechanism, users of this option would have specific knowledge of the
++	  device they want to access.
++
++	  If you don't require the option or are in doubt, say N.
++
++config X86_RDC321X
++	bool "RDC R-321x SoC"
++	depends on X86_32
++	depends on X86_EXTENDED_PLATFORM
++	select M486
++	select X86_REBOOTFIXUPS
++	---help---
++	  This option is needed for RDC R-321x system-on-chip, also known
++	  as R-8610-(G).
++	  If you don't have one of these chips, you should say N here.
++
++config X86_32_NON_STANDARD
++	bool "Support non-standard 32-bit SMP architectures"
++	depends on X86_32 && SMP
++	depends on X86_EXTENDED_PLATFORM
++	---help---
++	  This option compiles in the bigsmp and STA2X11 default
++	  subarchitectures.  It is intended for a generic binary
++	  kernel. If you select them all, kernel will probe it one by
++	  one and will fallback to default.
++
++# Alphabetically sorted list of Non standard 32 bit platforms
++
++config X86_SUPPORTS_MEMORY_FAILURE
++	def_bool y
++	# MCE code calls memory_failure():
++	depends on X86_MCE
++	# On 32-bit this adds too big of NODES_SHIFT and we run out of page flags:
++	# On 32-bit SPARSEMEM adds too big of SECTIONS_WIDTH:
++	depends on X86_64 || !SPARSEMEM
++	select ARCH_SUPPORTS_MEMORY_FAILURE
++
++config STA2X11
++	bool "STA2X11 Companion Chip Support"
++	depends on X86_32_NON_STANDARD && PCI
++	select X86_DEV_DMA_OPS
++	select X86_DMA_REMAP
++	select SWIOTLB
++	select MFD_STA2X11
++	select GPIOLIB
++	default n
++	---help---
++	  This adds support for boards based on the STA2X11 IO-Hub,
++	  a.k.a. "ConneXt". The chip is used in place of the standard
++	  PC chipset, so all "standard" peripherals are missing. If this
++	  option is selected the kernel will still be able to boot on
++	  standard PC machines.
++
++config X86_32_IRIS
++	tristate "Eurobraille/Iris poweroff module"
++	depends on X86_32
++	---help---
++	  The Iris machines from EuroBraille do not have APM or ACPI support
++	  to shut themselves down properly.  A special I/O sequence is
++	  needed to do so, which is what this module does at
++	  kernel shutdown.
++
++	  This is only for Iris machines from EuroBraille.
++
++	  If unused, say N.
++
++config SCHED_OMIT_FRAME_POINTER
++	def_bool y
++	prompt "Single-depth WCHAN output"
++	depends on X86
++	---help---
++	  Calculate simpler /proc/<PID>/wchan values. If this option
++	  is disabled then wchan values will recurse back to the
++	  caller function. This provides more accurate wchan values,
++	  at the expense of slightly more scheduling overhead.
++
++	  If in doubt, say "Y".
++
++menuconfig HYPERVISOR_GUEST
++	bool "Linux guest support"
++	---help---
++	  Say Y here to enable options for running Linux under various hyper-
++	  visors. This option enables basic hypervisor detection and platform
++	  setup.
++
++	  If you say N, all options in this submenu will be skipped and
++	  disabled, and Linux guest support won't be built in.
++
++if HYPERVISOR_GUEST
++
++config PARAVIRT
++	bool "Enable paravirtualization code"
++	---help---
++	  This changes the kernel so it can modify itself when it is run
++	  under a hypervisor, potentially improving performance significantly
++	  over full virtualization.  However, when run without a hypervisor
++	  the kernel is theoretically slower and slightly larger.
++
++config PARAVIRT_DEBUG
++	bool "paravirt-ops debugging"
++	depends on PARAVIRT && DEBUG_KERNEL
++	---help---
++	  Enable to debug paravirt_ops internals.  Specifically, BUG if
++	  a paravirt_op is missing when it is called.
++
++config PARAVIRT_SPINLOCKS
++	bool "Paravirtualization layer for spinlocks"
++	depends on PARAVIRT && SMP
++	---help---
++	  Paravirtualized spinlocks allow a pvops backend to replace the
++	  spinlock implementation with something virtualization-friendly
++	  (for example, block the virtual CPU rather than spinning).
++
++	  It has a minimal impact on native kernels and gives a nice performance
++	  benefit on paravirtualized KVM / Xen kernels.
++
++	  If you are unsure how to answer this question, answer Y.
++
++config QUEUED_LOCK_STAT
++	bool "Paravirt queued spinlock statistics"
++	depends on PARAVIRT_SPINLOCKS && DEBUG_FS
++	---help---
++	  Enable the collection of statistical data on the slowpath
++	  behavior of paravirtualized queued spinlocks and report
++	  them on debugfs.
++
++source "arch/x86/xen/Kconfig"
++
++config KVM_GUEST
++	bool "KVM Guest support (including kvmclock)"
++	depends on PARAVIRT
++	select PARAVIRT_CLOCK
++	default y
++	---help---
++	  This option enables various optimizations for running under the KVM
++	  hypervisor. It includes a paravirtualized clock, so that instead
++	  of relying on a PIT (or probably other) emulation by the
++	  underlying device model, the host provides the guest with
++	  timing infrastructure such as time of day, and system time
++
++config KVM_DEBUG_FS
++	bool "Enable debug information for KVM Guests in debugfs"
++	depends on KVM_GUEST && DEBUG_FS
++	default n
++	---help---
++	  This option enables collection of various statistics for KVM guest.
++	  Statistics are displayed in debugfs filesystem. Enabling this option
++	  may incur significant overhead.
++
++config PARAVIRT_TIME_ACCOUNTING
++	bool "Paravirtual steal time accounting"
++	depends on PARAVIRT
++	default n
++	---help---
++	  Select this option to enable fine granularity task steal time
++	  accounting. Time spent executing other tasks in parallel with
++	  the current vCPU is discounted from the vCPU power. To account for
++	  that, there can be a small performance impact.
++
++	  If in doubt, say N here.
++
++config PARAVIRT_CLOCK
++	bool
++
++endif #HYPERVISOR_GUEST
++
++config NO_BOOTMEM
++	def_bool y
++
++source "arch/x86/Kconfig.cpu"
++
++config HPET_TIMER
++	def_bool X86_64
++	prompt "HPET Timer Support" if X86_32
++	---help---
++	  Use the IA-PC HPET (High Precision Event Timer) to manage
++	  time in preference to the PIT and RTC, if a HPET is
++	  present.
++	  HPET is the next generation timer replacing legacy 8254s.
++	  The HPET provides a stable time base on SMP
++	  systems, unlike the TSC, but it is more expensive to access,
++	  as it is off-chip.  The interface used is documented
++	  in the HPET spec, revision 1.
++
++	  You can safely choose Y here.  However, HPET will only be
++	  activated if the platform and the BIOS support this feature.
++	  Otherwise the 8254 will be used for timing services.
++
++	  Choose N to continue using the legacy 8254 timer.
++
++config HPET_EMULATE_RTC
++	def_bool y
++	depends on HPET_TIMER && (RTC=y || RTC=m || RTC_DRV_CMOS=m || RTC_DRV_CMOS=y)
++
++config APB_TIMER
++       def_bool y if X86_INTEL_MID
++       prompt "Intel MID APB Timer Support" if X86_INTEL_MID
++       select DW_APB_TIMER
++       depends on X86_INTEL_MID && SFI
++       help
++         APB timer is the replacement for 8254, HPET on X86 MID platforms.
++         The APBT provides a stable time base on SMP
++         systems, unlike the TSC, but it is more expensive to access,
++         as it is off-chip. APB timers are always running regardless of CPU
++         C states, they are used as per CPU clockevent device when possible.
++
++# Mark as expert because too many people got it wrong.
++# The code disables itself when not needed.
++config DMI
++	default y
++	select DMI_SCAN_MACHINE_NON_EFI_FALLBACK
++	bool "Enable DMI scanning" if EXPERT
++	---help---
++	  Enabled scanning of DMI to identify machine quirks. Say Y
++	  here unless you have verified that your setup is not
++	  affected by entries in the DMI blacklist. Required by PNP
++	  BIOS code.
++
++config GART_IOMMU
++	bool "Old AMD GART IOMMU support"
++	select SWIOTLB
++	depends on X86_64 && PCI && AMD_NB
++	---help---
++	  Provides a driver for older AMD Athlon64/Opteron/Turion/Sempron
++	  GART based hardware IOMMUs.
++
++	  The GART supports full DMA access for devices with 32-bit access
++	  limitations, on systems with more than 3 GB. This is usually needed
++	  for USB, sound, many IDE/SATA chipsets and some other devices.
++
++	  Newer systems typically have a modern AMD IOMMU, supported via
++	  the CONFIG_AMD_IOMMU=y config option.
++
++	  In normal configurations this driver is only active when needed:
++	  there's more than 3 GB of memory and the system contains a
++	  32-bit limited device.
++
++	  If unsure, say Y.
++
++config CALGARY_IOMMU
++	bool "IBM Calgary IOMMU support"
++	select SWIOTLB
++	depends on X86_64 && PCI
++	---help---
++	  Support for hardware IOMMUs in IBM's xSeries x366 and x460
++	  systems. Needed to run systems with more than 3GB of memory
++	  properly with 32-bit PCI devices that do not support DAC
++	  (Double Address Cycle). Calgary also supports bus level
++	  isolation, where all DMAs pass through the IOMMU.  This
++	  prevents them from going anywhere except their intended
++	  destination. This catches hard-to-find kernel bugs and
++	  mis-behaving drivers and devices that do not use the DMA-API
++	  properly to set up their DMA buffers.  The IOMMU can be
++	  turned off at boot time with the iommu=off parameter.
++	  Normally the kernel will make the right choice by itself.
++	  If unsure, say Y.
++
++config CALGARY_IOMMU_ENABLED_BY_DEFAULT
++	def_bool y
++	prompt "Should Calgary be enabled by default?"
++	depends on CALGARY_IOMMU
++	---help---
++	  Should Calgary be enabled by default? if you choose 'y', Calgary
++	  will be used (if it exists). If you choose 'n', Calgary will not be
++	  used even if it exists. If you choose 'n' and would like to use
++	  Calgary anyway, pass 'iommu=calgary' on the kernel command line.
++	  If unsure, say Y.
++
++# need this always selected by IOMMU for the VIA workaround
++config SWIOTLB
++	def_bool y if X86_64
++	---help---
++	  Support for software bounce buffers used on x86-64 systems
++	  which don't have a hardware IOMMU. Using this PCI devices
++	  which can only access 32-bits of memory can be used on systems
++	  with more than 3 GB of memory.
++	  If unsure, say Y.
++
++config IOMMU_HELPER
++	def_bool y
++	depends on CALGARY_IOMMU || GART_IOMMU || SWIOTLB || AMD_IOMMU
++
++config MAXSMP
++	bool "Enable Maximum number of SMP Processors and NUMA Nodes"
++	depends on X86_64 && SMP && DEBUG_KERNEL
++	select CPUMASK_OFFSTACK
++	---help---
++	  Enable maximum number of CPUS and NUMA Nodes for this architecture.
++	  If unsure, say N.
++
++config NR_CPUS
++	int "Maximum number of CPUs" if SMP && !MAXSMP
++	range 2 8 if SMP && X86_32 && !X86_BIGSMP
++	range 2 64 if SMP && X86_32 && X86_BIGSMP
++	range 2 512 if SMP && !MAXSMP && !CPUMASK_OFFSTACK && X86_64
++	range 2 8192 if SMP && !MAXSMP && CPUMASK_OFFSTACK && X86_64
++	default "1" if !SMP
++	default "8192" if MAXSMP
++	default "32" if SMP && X86_BIGSMP
++	default "8" if SMP && X86_32
++	default "64" if SMP
++	---help---
++	  This allows you to specify the maximum number of CPUs which this
++	  kernel will support.  If CPUMASK_OFFSTACK is enabled, the maximum
++	  supported value is 8192, otherwise the maximum value is 512.  The
++	  minimum value which makes sense is 2.
++
++	  This is purely to save memory - each supported CPU adds
++	  approximately eight kilobytes to the kernel image.
++
++config SCHED_SMT
++	bool "SMT (Hyperthreading) scheduler support"
++	depends on SMP
++	---help---
++	  SMT scheduler support improves the CPU scheduler's decision making
++	  when dealing with Intel Pentium 4 chips with HyperThreading at a
++	  cost of slightly increased overhead in some places. If unsure say
++	  N here.
++
++config SCHED_MC
++	def_bool y
++	prompt "Multi-core scheduler support"
++	depends on SMP
++	---help---
++	  Multi-core scheduler support improves the CPU scheduler's decision
++	  making when dealing with multi-core CPU chips at a cost of slightly
++	  increased overhead in some places. If unsure say N here.
++
++config SCHED_MC_PRIO
++	bool "CPU core priorities scheduler support"
++	depends on SCHED_MC && CPU_SUP_INTEL
++	select X86_INTEL_PSTATE
++	select CPU_FREQ
++	default y
++	---help---
++	  Intel Turbo Boost Max Technology 3.0 enabled CPUs have a
++	  core ordering determined at manufacturing time, which allows
++	  certain cores to reach higher turbo frequencies (when running
++	  single threaded workloads) than others.
++
++	  Enabling this kernel feature teaches the scheduler about
++	  the TBM3 (aka ITMT) priority order of the CPU cores and adjusts the
++	  scheduler's CPU selection logic accordingly, so that higher
++	  overall system performance can be achieved.
++
++	  This feature will have no effect on CPUs without this feature.
++
++	  If unsure say Y here.
++
++source "kernel/Kconfig.preempt"
++
++config UP_LATE_INIT
++       def_bool y
++       depends on !SMP && X86_LOCAL_APIC
++
++config X86_UP_APIC
++	bool "Local APIC support on uniprocessors" if !PCI_MSI
++	default PCI_MSI
++	depends on X86_32 && !SMP && !X86_32_NON_STANDARD
++	---help---
++	  A local APIC (Advanced Programmable Interrupt Controller) is an
++	  integrated interrupt controller in the CPU. If you have a single-CPU
++	  system which has a processor with a local APIC, you can say Y here to
++	  enable and use it. If you say Y here even though your machine doesn't
++	  have a local APIC, then the kernel will still run with no slowdown at
++	  all. The local APIC supports CPU-generated self-interrupts (timer,
++	  performance counters), and the NMI watchdog which detects hard
++	  lockups.
++
++config X86_UP_IOAPIC
++	bool "IO-APIC support on uniprocessors"
++	depends on X86_UP_APIC
++	---help---
++	  An IO-APIC (I/O Advanced Programmable Interrupt Controller) is an
++	  SMP-capable replacement for PC-style interrupt controllers. Most
++	  SMP systems and many recent uniprocessor systems have one.
++
++	  If you have a single-CPU system with an IO-APIC, you can say Y here
++	  to use it. If you say Y here even though your machine doesn't have
++	  an IO-APIC, then the kernel will still run with no slowdown at all.
++
++config X86_LOCAL_APIC
++	def_bool y
++	depends on X86_64 || SMP || X86_32_NON_STANDARD || X86_UP_APIC || PCI_MSI
++	select IRQ_DOMAIN_HIERARCHY
++	select PCI_MSI_IRQ_DOMAIN if PCI_MSI
++
++config X86_IO_APIC
++	def_bool y
++	depends on X86_LOCAL_APIC || X86_UP_IOAPIC
++
++config X86_REROUTE_FOR_BROKEN_BOOT_IRQS
++	bool "Reroute for broken boot IRQs"
++	depends on X86_IO_APIC
++	---help---
++	  This option enables a workaround that fixes a source of
++	  spurious interrupts. This is recommended when threaded
++	  interrupt handling is used on systems where the generation of
++	  superfluous "boot interrupts" cannot be disabled.
++
++	  Some chipsets generate a legacy INTx "boot IRQ" when the IRQ
++	  entry in the chipset's IO-APIC is masked (as, e.g. the RT
++	  kernel does during interrupt handling). On chipsets where this
++	  boot IRQ generation cannot be disabled, this workaround keeps
++	  the original IRQ line masked so that only the equivalent "boot
++	  IRQ" is delivered to the CPUs. The workaround also tells the
++	  kernel to set up the IRQ handler on the boot IRQ line. In this
++	  way only one interrupt is delivered to the kernel. Otherwise
++	  the spurious second interrupt may cause the kernel to bring
++	  down (vital) interrupt lines.
++
++	  Only affects "broken" chipsets. Interrupt sharing may be
++	  increased on these systems.
++
++config X86_MCE
++	bool "Machine Check / overheating reporting"
++	select GENERIC_ALLOCATOR
++	default y
++	---help---
++	  Machine Check support allows the processor to notify the
++	  kernel if it detects a problem (e.g. overheating, data corruption).
++	  The action the kernel takes depends on the severity of the problem,
++	  ranging from warning messages to halting the machine.
++
++config X86_MCELOG_LEGACY
++	bool "Support for deprecated /dev/mcelog character device"
++	depends on X86_MCE
++	---help---
++	  Enable support for /dev/mcelog which is needed by the old mcelog
++	  userspace logging daemon. Consider switching to the new generation
++	  rasdaemon solution.
++
++config X86_MCE_INTEL
++	def_bool y
++	prompt "Intel MCE features"
++	depends on X86_MCE && X86_LOCAL_APIC
++	---help---
++	   Additional support for intel specific MCE features such as
++	   the thermal monitor.
++
++config X86_MCE_AMD
++	def_bool y
++	prompt "AMD MCE features"
++	depends on X86_MCE && X86_LOCAL_APIC && AMD_NB
++	---help---
++	   Additional support for AMD specific MCE features such as
++	   the DRAM Error Threshold.
++
++config X86_ANCIENT_MCE
++	bool "Support for old Pentium 5 / WinChip machine checks"
++	depends on X86_32 && X86_MCE
++	---help---
++	  Include support for machine check handling on old Pentium 5 or WinChip
++	  systems. These typically need to be enabled explicitly on the command
++	  line.
++
++config X86_MCE_THRESHOLD
++	depends on X86_MCE_AMD || X86_MCE_INTEL
++	def_bool y
++
++config X86_MCE_INJECT
++	depends on X86_MCE && X86_LOCAL_APIC && DEBUG_FS
++	tristate "Machine check injector support"
++	---help---
++	  Provide support for injecting machine checks for testing purposes.
++	  If you don't know what a machine check is and you don't do kernel
++	  QA it is safe to say n.
++
++config X86_THERMAL_VECTOR
++	def_bool y
++	depends on X86_MCE_INTEL
++
++source "arch/x86/events/Kconfig"
++
++config X86_LEGACY_VM86
++	bool "Legacy VM86 support"
++	default n
++	depends on X86_32
++	---help---
++	  This option allows user programs to put the CPU into V8086
++	  mode, which is an 80286-era approximation of 16-bit real mode.
++
++	  Some very old versions of X and/or vbetool require this option
++	  for user mode setting.  Similarly, DOSEMU will use it if
++	  available to accelerate real mode DOS programs.  However, any
++	  recent version of DOSEMU, X, or vbetool should be fully
++	  functional even without kernel VM86 support, as they will all
++	  fall back to software emulation. Nevertheless, if you are using
++	  a 16-bit DOS program where 16-bit performance matters, vm86
++	  mode might be faster than emulation and you might want to
++	  enable this option.
++
++	  Note that any app that works on a 64-bit kernel is unlikely to
++	  need this option, as 64-bit kernels don't, and can't, support
++	  V8086 mode. This option is also unrelated to 16-bit protected
++	  mode and is not needed to run most 16-bit programs under Wine.
++
++	  Enabling this option increases the complexity of the kernel
++	  and slows down exception handling a tiny bit.
++
++	  If unsure, say N here.
++
++config VM86
++       bool
++       default X86_LEGACY_VM86
++
++config X86_16BIT
++	bool "Enable support for 16-bit segments" if EXPERT
++	default y
++	depends on MODIFY_LDT_SYSCALL
++	---help---
++	  This option is required by programs like Wine to run 16-bit
++	  protected mode legacy code on x86 processors.  Disabling
++	  this option saves about 300 bytes on i386, or around 6K text
++	  plus 16K runtime memory on x86-64,
++
++config X86_ESPFIX32
++	def_bool y
++	depends on X86_16BIT && X86_32
++
++config X86_ESPFIX64
++	def_bool y
++	depends on X86_16BIT && X86_64
++
++config X86_VSYSCALL_EMULATION
++       bool "Enable vsyscall emulation" if EXPERT
++       default y
++       depends on X86_64
++       ---help---
++	 This enables emulation of the legacy vsyscall page.  Disabling
++	 it is roughly equivalent to booting with vsyscall=none, except
++	 that it will also disable the helpful warning if a program
++	 tries to use a vsyscall.  With this option set to N, offending
++	 programs will just segfault, citing addresses of the form
++	 0xffffffffff600?00.
++
++	 This option is required by many programs built before 2013, and
++	 care should be used even with newer programs if set to N.
++
++	 Disabling this option saves about 7K of kernel size and
++	 possibly 4K of additional runtime pagetable memory.
++
++config TOSHIBA
++	tristate "Toshiba Laptop support"
++	depends on X86_32
++	---help---
++	  This adds a driver to safely access the System Management Mode of
++	  the CPU on Toshiba portables with a genuine Toshiba BIOS. It does
++	  not work on models with a Phoenix BIOS. The System Management Mode
++	  is used to set the BIOS and power saving options on Toshiba portables.
++
++	  For information on utilities to make use of this driver see the
++	  Toshiba Linux utilities web site at:
++	  <http://www.buzzard.org.uk/toshiba/>.
++
++	  Say Y if you intend to run this kernel on a Toshiba portable.
++	  Say N otherwise.
++
++config I8K
++	tristate "Dell i8k legacy laptop support"
++	select HWMON
++	select SENSORS_DELL_SMM
++	---help---
++	  This option enables legacy /proc/i8k userspace interface in hwmon
++	  dell-smm-hwmon driver. Character file /proc/i8k reports bios version,
++	  temperature and allows controlling fan speeds of Dell laptops via
++	  System Management Mode. For old Dell laptops (like Dell Inspiron 8000)
++	  it reports also power and hotkey status. For fan speed control is
++	  needed userspace package i8kutils.
++
++	  Say Y if you intend to run this kernel on old Dell laptops or want to
++	  use userspace package i8kutils.
++	  Say N otherwise.
++
++config X86_REBOOTFIXUPS
++	bool "Enable X86 board specific fixups for reboot"
++	depends on X86_32
++	---help---
++	  This enables chipset and/or board specific fixups to be done
++	  in order to get reboot to work correctly. This is only needed on
++	  some combinations of hardware and BIOS. The symptom, for which
++	  this config is intended, is when reboot ends with a stalled/hung
++	  system.
++
++	  Currently, the only fixup is for the Geode machines using
++	  CS5530A and CS5536 chipsets and the RDC R-321x SoC.
++
++	  Say Y if you want to enable the fixup. Currently, it's safe to
++	  enable this option even if you don't need it.
++	  Say N otherwise.
++
++config MICROCODE
++	bool "CPU microcode loading support"
++	default y
++	depends on CPU_SUP_AMD || CPU_SUP_INTEL
++	select FW_LOADER
++	---help---
++	  If you say Y here, you will be able to update the microcode on
++	  Intel and AMD processors. The Intel support is for the IA32 family,
++	  e.g. Pentium Pro, Pentium II, Pentium III, Pentium 4, Xeon etc. The
++	  AMD support is for families 0x10 and later. You will obviously need
++	  the actual microcode binary data itself which is not shipped with
++	  the Linux kernel.
++
++	  The preferred method to load microcode from a detached initrd is described
++	  in Documentation/x86/early-microcode.txt. For that you need to enable
++	  CONFIG_BLK_DEV_INITRD in order for the loader to be able to scan the
++	  initrd for microcode blobs.
++
++	  In addition, you can build-in the microcode into the kernel. For that you
++	  need to enable FIRMWARE_IN_KERNEL and add the vendor-supplied microcode
++	  to the CONFIG_EXTRA_FIRMWARE config option.
++
++config MICROCODE_INTEL
++	bool "Intel microcode loading support"
++	depends on MICROCODE
++	default MICROCODE
++	select FW_LOADER
++	---help---
++	  This options enables microcode patch loading support for Intel
++	  processors.
++
++	  For the current Intel microcode data package go to
++	  <https://downloadcenter.intel.com> and search for
++	  'Linux Processor Microcode Data File'.
++
++config MICROCODE_AMD
++	bool "AMD microcode loading support"
++	depends on MICROCODE
++	select FW_LOADER
++	---help---
++	  If you select this option, microcode patch loading support for AMD
++	  processors will be enabled.
++
++config MICROCODE_OLD_INTERFACE
++	def_bool y
++	depends on MICROCODE
++
++config X86_MSR
++	tristate "/dev/cpu/*/msr - Model-specific register support"
++	---help---
++	  This device gives privileged processes access to the x86
++	  Model-Specific Registers (MSRs).  It is a character device with
++	  major 202 and minors 0 to 31 for /dev/cpu/0/msr to /dev/cpu/31/msr.
++	  MSR accesses are directed to a specific CPU on multi-processor
++	  systems.
++
++config X86_CPUID
++	tristate "/dev/cpu/*/cpuid - CPU information support"
++	---help---
++	  This device gives processes access to the x86 CPUID instruction to
++	  be executed on a specific processor.  It is a character device
++	  with major 203 and minors 0 to 31 for /dev/cpu/0/cpuid to
++	  /dev/cpu/31/cpuid.
++
++choice
++	prompt "High Memory Support"
++	default HIGHMEM4G
++	depends on X86_32
++
++config NOHIGHMEM
++	bool "off"
++	---help---
++	  Linux can use up to 64 Gigabytes of physical memory on x86 systems.
++	  However, the address space of 32-bit x86 processors is only 4
++	  Gigabytes large. That means that, if you have a large amount of
++	  physical memory, not all of it can be "permanently mapped" by the
++	  kernel. The physical memory that's not permanently mapped is called
++	  "high memory".
++
++	  If you are compiling a kernel which will never run on a machine with
++	  more than 1 Gigabyte total physical RAM, answer "off" here (default
++	  choice and suitable for most users). This will result in a "3GB/1GB"
++	  split: 3GB are mapped so that each process sees a 3GB virtual memory
++	  space and the remaining part of the 4GB virtual memory space is used
++	  by the kernel to permanently map as much physical memory as
++	  possible.
++
++	  If the machine has between 1 and 4 Gigabytes physical RAM, then
++	  answer "4GB" here.
++
++	  If more than 4 Gigabytes is used then answer "64GB" here. This
++	  selection turns Intel PAE (Physical Address Extension) mode on.
++	  PAE implements 3-level paging on IA32 processors. PAE is fully
++	  supported by Linux, PAE mode is implemented on all recent Intel
++	  processors (Pentium Pro and better). NOTE: If you say "64GB" here,
++	  then the kernel will not boot on CPUs that don't support PAE!
++
++	  The actual amount of total physical memory will either be
++	  auto detected or can be forced by using a kernel command line option
++	  such as "mem=256M". (Try "man bootparam" or see the documentation of
++	  your boot loader (lilo or loadlin) about how to pass options to the
++	  kernel at boot time.)
++
++	  If unsure, say "off".
++
++config HIGHMEM4G
++	bool "4GB"
++	---help---
++	  Select this if you have a 32-bit processor and between 1 and 4
++	  gigabytes of physical RAM.
++
++config HIGHMEM64G
++	bool "64GB"
++	depends on !M486
++	select X86_PAE
++	---help---
++	  Select this if you have a 32-bit processor and more than 4
++	  gigabytes of physical RAM.
++
++endchoice
++
++choice
++	prompt "Memory split" if EXPERT
++	default VMSPLIT_3G
++	depends on X86_32
++	---help---
++	  Select the desired split between kernel and user memory.
++
++	  If the address range available to the kernel is less than the
++	  physical memory installed, the remaining memory will be available
++	  as "high memory". Accessing high memory is a little more costly
++	  than low memory, as it needs to be mapped into the kernel first.
++	  Note that increasing the kernel address space limits the range
++	  available to user programs, making the address space there
++	  tighter.  Selecting anything other than the default 3G/1G split
++	  will also likely make your kernel incompatible with binary-only
++	  kernel modules.
++
++	  If you are not absolutely sure what you are doing, leave this
++	  option alone!
++
++	config VMSPLIT_3G
++		bool "3G/1G user/kernel split"
++	config VMSPLIT_3G_OPT
++		depends on !X86_PAE
++		bool "3G/1G user/kernel split (for full 1G low memory)"
++	config VMSPLIT_2G
++		bool "2G/2G user/kernel split"
++	config VMSPLIT_2G_OPT
++		depends on !X86_PAE
++		bool "2G/2G user/kernel split (for full 2G low memory)"
++	config VMSPLIT_1G
++		bool "1G/3G user/kernel split"
++endchoice
++
++config PAGE_OFFSET
++	hex
++	default 0xB0000000 if VMSPLIT_3G_OPT
++	default 0x80000000 if VMSPLIT_2G
++	default 0x78000000 if VMSPLIT_2G_OPT
++	default 0x40000000 if VMSPLIT_1G
++	default 0xC0000000
++	depends on X86_32
++
++config HIGHMEM
++	def_bool y
++	depends on X86_32 && (HIGHMEM64G || HIGHMEM4G)
++
++config X86_PAE
++	bool "PAE (Physical Address Extension) Support"
++	depends on X86_32 && !HIGHMEM4G
++	select SWIOTLB
++	---help---
++	  PAE is required for NX support, and furthermore enables
++	  larger swapspace support for non-overcommit purposes. It
++	  has the cost of more pagetable lookup overhead, and also
++	  consumes more pagetable space per process.
++
++config X86_5LEVEL
++	bool "Enable 5-level page tables support"
++	depends on X86_64
++	---help---
++	  5-level paging enables access to larger address space:
++	  upto 128 PiB of virtual address space and 4 PiB of
++	  physical address space.
++
++	  It will be supported by future Intel CPUs.
++
++	  Note: a kernel with this option enabled can only be booted
++	  on machines that support the feature.
++
++	  See Documentation/x86/x86_64/5level-paging.txt for more
++	  information.
++
++	  Say N if unsure.
++
++config ARCH_PHYS_ADDR_T_64BIT
++	def_bool y
++	depends on X86_64 || X86_PAE
++
++config ARCH_DMA_ADDR_T_64BIT
++	def_bool y
++	depends on X86_64 || HIGHMEM64G
++
++config X86_DIRECT_GBPAGES
++	def_bool y
++	depends on X86_64 && !DEBUG_PAGEALLOC
++	---help---
++	  Certain kernel features effectively disable kernel
++	  linear 1 GB mappings (even if the CPU otherwise
++	  supports them), so don't confuse the user by printing
++	  that we have them enabled.
++
++config ARCH_HAS_MEM_ENCRYPT
++	def_bool y
++
++config AMD_MEM_ENCRYPT
++	bool "AMD Secure Memory Encryption (SME) support"
++	depends on X86_64 && CPU_SUP_AMD
++	---help---
++	  Say yes to enable support for the encryption of system memory.
++	  This requires an AMD processor that supports Secure Memory
++	  Encryption (SME).
++
++config AMD_MEM_ENCRYPT_ACTIVE_BY_DEFAULT
++	bool "Activate AMD Secure Memory Encryption (SME) by default"
++	default y
++	depends on AMD_MEM_ENCRYPT
++	---help---
++	  Say yes to have system memory encrypted by default if running on
++	  an AMD processor that supports Secure Memory Encryption (SME).
++
++	  If set to Y, then the encryption of system memory can be
++	  deactivated with the mem_encrypt=off command line option.
++
++	  If set to N, then the encryption of system memory can be
++	  activated with the mem_encrypt=on command line option.
++
++config ARCH_USE_MEMREMAP_PROT
++	def_bool y
++	depends on AMD_MEM_ENCRYPT
++
++# Common NUMA Features
++config NUMA
++	bool "Numa Memory Allocation and Scheduler Support"
++	depends on SMP
++	depends on X86_64 || (X86_32 && HIGHMEM64G && X86_BIGSMP)
++	default y if X86_BIGSMP
++	---help---
++	  Enable NUMA (Non Uniform Memory Access) support.
++
++	  The kernel will try to allocate memory used by a CPU on the
++	  local memory controller of the CPU and add some more
++	  NUMA awareness to the kernel.
++
++	  For 64-bit this is recommended if the system is Intel Core i7
++	  (or later), AMD Opteron, or EM64T NUMA.
++
++	  For 32-bit this is only needed if you boot a 32-bit
++	  kernel on a 64-bit NUMA platform.
++
++	  Otherwise, you should say N.
++
++config AMD_NUMA
++	def_bool y
++	prompt "Old style AMD Opteron NUMA detection"
++	depends on X86_64 && NUMA && PCI
++	---help---
++	  Enable AMD NUMA node topology detection.  You should say Y here if
++	  you have a multi processor AMD system. This uses an old method to
++	  read the NUMA configuration directly from the builtin Northbridge
++	  of Opteron. It is recommended to use X86_64_ACPI_NUMA instead,
++	  which also takes priority if both are compiled in.
++
++config X86_64_ACPI_NUMA
++	def_bool y
++	prompt "ACPI NUMA detection"
++	depends on X86_64 && NUMA && ACPI && PCI
++	select ACPI_NUMA
++	---help---
++	  Enable ACPI SRAT based node topology detection.
++
++# Some NUMA nodes have memory ranges that span
++# other nodes.  Even though a pfn is valid and
++# between a node's start and end pfns, it may not
++# reside on that node.  See memmap_init_zone()
++# for details.
++config NODES_SPAN_OTHER_NODES
++	def_bool y
++	depends on X86_64_ACPI_NUMA
++
++config NUMA_EMU
++	bool "NUMA emulation"
++	depends on NUMA
++	---help---
++	  Enable NUMA emulation. A flat machine will be split
++	  into virtual nodes when booted with "numa=fake=N", where N is the
++	  number of nodes. This is only useful for debugging.
++
++config NODES_SHIFT
++	int "Maximum NUMA Nodes (as a power of 2)" if !MAXSMP
++	range 1 10
++	default "10" if MAXSMP
++	default "6" if X86_64
++	default "3"
++	depends on NEED_MULTIPLE_NODES
++	---help---
++	  Specify the maximum number of NUMA Nodes available on the target
++	  system.  Increases memory reserved to accommodate various tables.
++
++config ARCH_HAVE_MEMORY_PRESENT
++	def_bool y
++	depends on X86_32 && DISCONTIGMEM
++
++config NEED_NODE_MEMMAP_SIZE
++	def_bool y
++	depends on X86_32 && (DISCONTIGMEM || SPARSEMEM)
++
++config ARCH_FLATMEM_ENABLE
++	def_bool y
++	depends on X86_32 && !NUMA
++
++config ARCH_DISCONTIGMEM_ENABLE
++	def_bool y
++	depends on NUMA && X86_32
++
++config ARCH_DISCONTIGMEM_DEFAULT
++	def_bool y
++	depends on NUMA && X86_32
++
++config ARCH_SPARSEMEM_ENABLE
++	def_bool y
++	depends on X86_64 || NUMA || X86_32 || X86_32_NON_STANDARD
++	select SPARSEMEM_STATIC if X86_32
++	select SPARSEMEM_VMEMMAP_ENABLE if X86_64
++
++config ARCH_SPARSEMEM_DEFAULT
++	def_bool y
++	depends on X86_64
++
++config ARCH_SELECT_MEMORY_MODEL
++	def_bool y
++	depends on ARCH_SPARSEMEM_ENABLE
++
++config ARCH_MEMORY_PROBE
++	bool "Enable sysfs memory/probe interface"
++	depends on X86_64 && MEMORY_HOTPLUG
++	help
++	  This option enables a sysfs memory/probe interface for testing.
++	  See Documentation/memory-hotplug.txt for more information.
++	  If you are unsure how to answer this question, answer N.
++
++config ARCH_PROC_KCORE_TEXT
++	def_bool y
++	depends on X86_64 && PROC_KCORE
++
++config ILLEGAL_POINTER_VALUE
++       hex
++       default 0 if X86_32
++       default 0xdead000000000000 if X86_64
++
++source "mm/Kconfig"
++
++config X86_PMEM_LEGACY_DEVICE
++	bool
++
++config X86_PMEM_LEGACY
++	tristate "Support non-standard NVDIMMs and ADR protected memory"
++	depends on PHYS_ADDR_T_64BIT
++	depends on BLK_DEV
++	select X86_PMEM_LEGACY_DEVICE
++	select LIBNVDIMM
++	help
++	  Treat memory marked using the non-standard e820 type of 12 as used
++	  by the Intel Sandy Bridge-EP reference BIOS as protected memory.
++	  The kernel will offer these regions to the 'pmem' driver so
++	  they can be used for persistent storage.
++
++	  Say Y if unsure.
++
++config HIGHPTE
++	bool "Allocate 3rd-level pagetables from highmem"
++	depends on HIGHMEM
++	---help---
++	  The VM uses one page table entry for each page of physical memory.
++	  For systems with a lot of RAM, this can be wasteful of precious
++	  low memory.  Setting this option will put user-space page table
++	  entries in high memory.
++
++config X86_CHECK_BIOS_CORRUPTION
++	bool "Check for low memory corruption"
++	---help---
++	  Periodically check for memory corruption in low memory, which
++	  is suspected to be caused by BIOS.  Even when enabled in the
++	  configuration, it is disabled at runtime.  Enable it by
++	  setting "memory_corruption_check=1" on the kernel command
++	  line.  By default it scans the low 64k of memory every 60
++	  seconds; see the memory_corruption_check_size and
++	  memory_corruption_check_period parameters in
++	  Documentation/admin-guide/kernel-parameters.rst to adjust this.
++
++	  When enabled with the default parameters, this option has
++	  almost no overhead, as it reserves a relatively small amount
++	  of memory and scans it infrequently.  It both detects corruption
++	  and prevents it from affecting the running system.
++
++	  It is, however, intended as a diagnostic tool; if repeatable
++	  BIOS-originated corruption always affects the same memory,
++	  you can use memmap= to prevent the kernel from using that
++	  memory.
++
++config X86_BOOTPARAM_MEMORY_CORRUPTION_CHECK
++	bool "Set the default setting of memory_corruption_check"
++	depends on X86_CHECK_BIOS_CORRUPTION
++	default y
++	---help---
++	  Set whether the default state of memory_corruption_check is
++	  on or off.
++
++config X86_RESERVE_LOW
++	int "Amount of low memory, in kilobytes, to reserve for the BIOS"
++	default 64
++	range 4 640
++	---help---
++	  Specify the amount of low memory to reserve for the BIOS.
++
++	  The first page contains BIOS data structures that the kernel
++	  must not use, so that page must always be reserved.
++
++	  By default we reserve the first 64K of physical RAM, as a
++	  number of BIOSes are known to corrupt that memory range
++	  during events such as suspend/resume or monitor cable
++	  insertion, so it must not be used by the kernel.
++
++	  You can set this to 4 if you are absolutely sure that you
++	  trust the BIOS to get all its memory reservations and usages
++	  right.  If you know your BIOS have problems beyond the
++	  default 64K area, you can set this to 640 to avoid using the
++	  entire low memory range.
++
++	  If you have doubts about the BIOS (e.g. suspend/resume does
++	  not work or there's kernel crashes after certain hardware
++	  hotplug events) then you might want to enable
++	  X86_CHECK_BIOS_CORRUPTION=y to allow the kernel to check
++	  typical corruption patterns.
++
++	  Leave this to the default value of 64 if you are unsure.
++
++config MATH_EMULATION
++	bool
++	depends on MODIFY_LDT_SYSCALL
++	prompt "Math emulation" if X86_32
++	---help---
++	  Linux can emulate a math coprocessor (used for floating point
++	  operations) if you don't have one. 486DX and Pentium processors have
++	  a math coprocessor built in, 486SX and 386 do not, unless you added
++	  a 487DX or 387, respectively. (The messages during boot time can
++	  give you some hints here ["man dmesg"].) Everyone needs either a
++	  coprocessor or this emulation.
++
++	  If you don't have a math coprocessor, you need to say Y here; if you
++	  say Y here even though you have a coprocessor, the coprocessor will
++	  be used nevertheless. (This behavior can be changed with the kernel
++	  command line option "no387", which comes handy if your coprocessor
++	  is broken. Try "man bootparam" or see the documentation of your boot
++	  loader (lilo or loadlin) about how to pass options to the kernel at
++	  boot time.) This means that it is a good idea to say Y here if you
++	  intend to use this kernel on different machines.
++
++	  More information about the internals of the Linux math coprocessor
++	  emulation can be found in <file:arch/x86/math-emu/README>.
++
++	  If you are not sure, say Y; apart from resulting in a 66 KB bigger
++	  kernel, it won't hurt.
++
++config MTRR
++	def_bool y
++	prompt "MTRR (Memory Type Range Register) support" if EXPERT
++	---help---
++	  On Intel P6 family processors (Pentium Pro, Pentium II and later)
++	  the Memory Type Range Registers (MTRRs) may be used to control
++	  processor access to memory ranges. This is most useful if you have
++	  a video (VGA) card on a PCI or AGP bus. Enabling write-combining
++	  allows bus write transfers to be combined into a larger transfer
++	  before bursting over the PCI/AGP bus. This can increase performance
++	  of image write operations 2.5 times or more. Saying Y here creates a
++	  /proc/mtrr file which may be used to manipulate your processor's
++	  MTRRs. Typically the X server should use this.
++
++	  This code has a reasonably generic interface so that similar
++	  control registers on other processors can be easily supported
++	  as well:
++
++	  The Cyrix 6x86, 6x86MX and M II processors have Address Range
++	  Registers (ARRs) which provide a similar functionality to MTRRs. For
++	  these, the ARRs are used to emulate the MTRRs.
++	  The AMD K6-2 (stepping 8 and above) and K6-3 processors have two
++	  MTRRs. The Centaur C6 (WinChip) has 8 MCRs, allowing
++	  write-combining. All of these processors are supported by this code
++	  and it makes sense to say Y here if you have one of them.
++
++	  Saying Y here also fixes a problem with buggy SMP BIOSes which only
++	  set the MTRRs for the boot CPU and not for the secondary CPUs. This
++	  can lead to all sorts of problems, so it's good to say Y here.
++
++	  You can safely say Y even if your machine doesn't have MTRRs, you'll
++	  just add about 9 KB to your kernel.
++
++	  See <file:Documentation/x86/mtrr.txt> for more information.
++
++config MTRR_SANITIZER
++	def_bool y
++	prompt "MTRR cleanup support"
++	depends on MTRR
++	---help---
++	  Convert MTRR layout from continuous to discrete, so X drivers can
++	  add writeback entries.
++
++	  Can be disabled with disable_mtrr_cleanup on the kernel command line.
++	  The largest mtrr entry size for a continuous block can be set with
++	  mtrr_chunk_size.
++
++	  If unsure, say Y.
++
++config MTRR_SANITIZER_ENABLE_DEFAULT
++	int "MTRR cleanup enable value (0-1)"
++	range 0 1
++	default "0"
++	depends on MTRR_SANITIZER
++	---help---
++	  Enable mtrr cleanup default value
++
++config MTRR_SANITIZER_SPARE_REG_NR_DEFAULT
++	int "MTRR cleanup spare reg num (0-7)"
++	range 0 7
++	default "1"
++	depends on MTRR_SANITIZER
++	---help---
++	  mtrr cleanup spare entries default, it can be changed via
++	  mtrr_spare_reg_nr=N on the kernel command line.
++
++config X86_PAT
++	def_bool y
++	prompt "x86 PAT support" if EXPERT
++	depends on MTRR
++	---help---
++	  Use PAT attributes to setup page level cache control.
++
++	  PATs are the modern equivalents of MTRRs and are much more
++	  flexible than MTRRs.
++
++	  Say N here if you see bootup problems (boot crash, boot hang,
++	  spontaneous reboots) or a non-working video driver.
++
++	  If unsure, say Y.
++
++config ARCH_USES_PG_UNCACHED
++	def_bool y
++	depends on X86_PAT
++
++config ARCH_RANDOM
++	def_bool y
++	prompt "x86 architectural random number generator" if EXPERT
++	---help---
++	  Enable the x86 architectural RDRAND instruction
++	  (Intel Bull Mountain technology) to generate random numbers.
++	  If supported, this is a high bandwidth, cryptographically
++	  secure hardware random number generator.
++
++config X86_SMAP
++	def_bool y
++	prompt "Supervisor Mode Access Prevention" if EXPERT
++	---help---
++	  Supervisor Mode Access Prevention (SMAP) is a security
++	  feature in newer Intel processors.  There is a small
++	  performance cost if this enabled and turned on; there is
++	  also a small increase in the kernel size if this is enabled.
++
++	  If unsure, say Y.
++
++config X86_INTEL_MPX
++	prompt "Intel MPX (Memory Protection Extensions)"
++	def_bool n
++	# Note: only available in 64-bit mode due to VMA flags shortage
++	depends on CPU_SUP_INTEL && X86_64
++	select ARCH_USES_HIGH_VMA_FLAGS
++	---help---
++	  MPX provides hardware features that can be used in
++	  conjunction with compiler-instrumented code to check
++	  memory references.  It is designed to detect buffer
++	  overflow or underflow bugs.
++
++	  This option enables running applications which are
++	  instrumented or otherwise use MPX.  It does not use MPX
++	  itself inside the kernel or to protect the kernel
++	  against bad memory references.
++
++	  Enabling this option will make the kernel larger:
++	  ~8k of kernel text and 36 bytes of data on a 64-bit
++	  defconfig.  It adds a long to the 'mm_struct' which
++	  will increase the kernel memory overhead of each
++	  process and adds some branches to paths used during
++	  exec() and munmap().
++
++	  For details, see Documentation/x86/intel_mpx.txt
++
++	  If unsure, say N.
++
++config X86_INTEL_MEMORY_PROTECTION_KEYS
++	prompt "Intel Memory Protection Keys"
++	def_bool y
++	# Note: only available in 64-bit mode
++	depends on CPU_SUP_INTEL && X86_64
++	select ARCH_USES_HIGH_VMA_FLAGS
++	select ARCH_HAS_PKEYS
++	---help---
++	  Memory Protection Keys provides a mechanism for enforcing
++	  page-based protections, but without requiring modification of the
++	  page tables when an application changes protection domains.
++
++	  For details, see Documentation/x86/protection-keys.txt
++
++	  If unsure, say y.
++
++config EFI
++	bool "EFI runtime service support"
++	depends on ACPI
++	select UCS2_STRING
++	select EFI_RUNTIME_WRAPPERS
++	---help---
++	  This enables the kernel to use EFI runtime services that are
++	  available (such as the EFI variable services).
++
++	  This option is only useful on systems that have EFI firmware.
++	  In addition, you should use the latest ELILO loader available
++	  at <http://elilo.sourceforge.net> in order to take advantage
++	  of EFI runtime services. However, even with this option, the
++	  resultant kernel should continue to boot on existing non-EFI
++	  platforms.
++
++config EFI_STUB
++       bool "EFI stub support"
++       depends on EFI && !X86_USE_3DNOW
++       select RELOCATABLE
++       ---help---
++          This kernel feature allows a bzImage to be loaded directly
++	  by EFI firmware without the use of a bootloader.
++
++	  See Documentation/efi-stub.txt for more information.
++
++config EFI_MIXED
++	bool "EFI mixed-mode support"
++	depends on EFI_STUB && X86_64
++	---help---
++	   Enabling this feature allows a 64-bit kernel to be booted
++	   on a 32-bit firmware, provided that your CPU supports 64-bit
++	   mode.
++
++	   Note that it is not possible to boot a mixed-mode enabled
++	   kernel via the EFI boot stub - a bootloader that supports
++	   the EFI handover protocol must be used.
++
++	   If unsure, say N.
++
++config SECCOMP
++	def_bool y
++	prompt "Enable seccomp to safely compute untrusted bytecode"
++	---help---
++	  This kernel feature is useful for number crunching applications
++	  that may need to compute untrusted bytecode during their
++	  execution. By using pipes or other transports made available to
++	  the process as file descriptors supporting the read/write
++	  syscalls, it's possible to isolate those applications in
++	  their own address space using seccomp. Once seccomp is
++	  enabled via prctl(PR_SET_SECCOMP), it cannot be disabled
++	  and the task is only allowed to execute a few safe syscalls
++	  defined by each seccomp mode.
++
++	  If unsure, say Y. Only embedded should say N here.
++
++source kernel/Kconfig.hz
++
++config KEXEC
++	bool "kexec system call"
++	select KEXEC_CORE
++	---help---
++	  kexec is a system call that implements the ability to shutdown your
++	  current kernel, and to start another kernel.  It is like a reboot
++	  but it is independent of the system firmware.   And like a reboot
++	  you can start any kernel with it, not just Linux.
++
++	  The name comes from the similarity to the exec system call.
++
++	  It is an ongoing process to be certain the hardware in a machine
++	  is properly shutdown, so do not be surprised if this code does not
++	  initially work for you.  As of this writing the exact hardware
++	  interface is strongly in flux, so no good recommendation can be
++	  made.
++
++config KEXEC_FILE
++	bool "kexec file based system call"
++	select KEXEC_CORE
++	select BUILD_BIN2C
++	depends on X86_64
++	depends on CRYPTO=y
++	depends on CRYPTO_SHA256=y
++	---help---
++	  This is new version of kexec system call. This system call is
++	  file based and takes file descriptors as system call argument
++	  for kernel and initramfs as opposed to list of segments as
++	  accepted by previous system call.
++
++config KEXEC_VERIFY_SIG
++	bool "Verify kernel signature during kexec_file_load() syscall"
++	depends on KEXEC_FILE
++	---help---
++	  This option makes kernel signature verification mandatory for
++	  the kexec_file_load() syscall.
++
++	  In addition to that option, you need to enable signature
++	  verification for the corresponding kernel image type being
++	  loaded in order for this to work.
++
++config KEXEC_BZIMAGE_VERIFY_SIG
++	bool "Enable bzImage signature verification support"
++	depends on KEXEC_VERIFY_SIG
++	depends on SIGNED_PE_FILE_VERIFICATION
++	select SYSTEM_TRUSTED_KEYRING
++	---help---
++	  Enable bzImage signature verification support.
++
++config CRASH_DUMP
++	bool "kernel crash dumps"
++	depends on X86_64 || (X86_32 && HIGHMEM)
++	---help---
++	  Generate crash dump after being started by kexec.
++	  This should be normally only set in special crash dump kernels
++	  which are loaded in the main kernel with kexec-tools into
++	  a specially reserved region and then later executed after
++	  a crash by kdump/kexec. The crash dump kernel must be compiled
++	  to a memory address not used by the main kernel or BIOS using
++	  PHYSICAL_START, or it must be built as a relocatable image
++	  (CONFIG_RELOCATABLE=y).
++	  For more details see Documentation/kdump/kdump.txt
++
++config KEXEC_JUMP
++	bool "kexec jump"
++	depends on KEXEC && HIBERNATION
++	---help---
++	  Jump between original kernel and kexeced kernel and invoke
++	  code in physical address mode via KEXEC
++
++config PHYSICAL_START
++	hex "Physical address where the kernel is loaded" if (EXPERT || CRASH_DUMP)
++	default "0x1000000"
++	---help---
++	  This gives the physical address where the kernel is loaded.
++
++	  If kernel is a not relocatable (CONFIG_RELOCATABLE=n) then
++	  bzImage will decompress itself to above physical address and
++	  run from there. Otherwise, bzImage will run from the address where
++	  it has been loaded by the boot loader and will ignore above physical
++	  address.
++
++	  In normal kdump cases one does not have to set/change this option
++	  as now bzImage can be compiled as a completely relocatable image
++	  (CONFIG_RELOCATABLE=y) and be used to load and run from a different
++	  address. This option is mainly useful for the folks who don't want
++	  to use a bzImage for capturing the crash dump and want to use a
++	  vmlinux instead. vmlinux is not relocatable hence a kernel needs
++	  to be specifically compiled to run from a specific memory area
++	  (normally a reserved region) and this option comes handy.
++
++	  So if you are using bzImage for capturing the crash dump,
++	  leave the value here unchanged to 0x1000000 and set
++	  CONFIG_RELOCATABLE=y.  Otherwise if you plan to use vmlinux
++	  for capturing the crash dump change this value to start of
++	  the reserved region.  In other words, it can be set based on
++	  the "X" value as specified in the "crashkernel=YM@XM"
++	  command line boot parameter passed to the panic-ed
++	  kernel. Please take a look at Documentation/kdump/kdump.txt
++	  for more details about crash dumps.
++
++	  Usage of bzImage for capturing the crash dump is recommended as
++	  one does not have to build two kernels. Same kernel can be used
++	  as production kernel and capture kernel. Above option should have
++	  gone away after relocatable bzImage support is introduced. But it
++	  is present because there are users out there who continue to use
++	  vmlinux for dump capture. This option should go away down the
++	  line.
++
++	  Don't change this unless you know what you are doing.
++
++config RELOCATABLE
++	bool "Build a relocatable kernel"
++	default y
++	---help---
++	  This builds a kernel image that retains relocation information
++	  so it can be loaded someplace besides the default 1MB.
++	  The relocations tend to make the kernel binary about 10% larger,
++	  but are discarded at runtime.
++
++	  One use is for the kexec on panic case where the recovery kernel
++	  must live at a different physical address than the primary
++	  kernel.
++
++	  Note: If CONFIG_RELOCATABLE=y, then the kernel runs from the address
++	  it has been loaded at and the compile time physical address
++	  (CONFIG_PHYSICAL_START) is used as the minimum location.
++
++config RANDOMIZE_BASE
++	bool "Randomize the address of the kernel image (KASLR)"
++	depends on RELOCATABLE
++	default y
++	---help---
++	  In support of Kernel Address Space Layout Randomization (KASLR),
++	  this randomizes the physical address at which the kernel image
++	  is decompressed and the virtual address where the kernel
++	  image is mapped, as a security feature that deters exploit
++	  attempts relying on knowledge of the location of kernel
++	  code internals.
++
++	  On 64-bit, the kernel physical and virtual addresses are
++	  randomized separately. The physical address will be anywhere
++	  between 16MB and the top of physical memory (up to 64TB). The
++	  virtual address will be randomized from 16MB up to 1GB (9 bits
++	  of entropy). Note that this also reduces the memory space
++	  available to kernel modules from 1.5GB to 1GB.
++
++	  On 32-bit, the kernel physical and virtual addresses are
++	  randomized together. They will be randomized from 16MB up to
++	  512MB (8 bits of entropy).
++
++	  Entropy is generated using the RDRAND instruction if it is
++	  supported. If RDTSC is supported, its value is mixed into
++	  the entropy pool as well. If neither RDRAND nor RDTSC are
++	  supported, then entropy is read from the i8254 timer. The
++	  usable entropy is limited by the kernel being built using
++	  2GB addressing, and that PHYSICAL_ALIGN must be at a
++	  minimum of 2MB. As a result, only 10 bits of entropy are
++	  theoretically possible, but the implementations are further
++	  limited due to memory layouts.
++
++	  If unsure, say Y.
++
++# Relocation on x86 needs some additional build support
++config X86_NEED_RELOCS
++	def_bool y
++	depends on RANDOMIZE_BASE || (X86_32 && RELOCATABLE)
++
++config PHYSICAL_ALIGN
++	hex "Alignment value to which kernel should be aligned"
++	default "0x200000"
++	range 0x2000 0x1000000 if X86_32
++	range 0x200000 0x1000000 if X86_64
++	---help---
++	  This value puts the alignment restrictions on physical address
++	  where kernel is loaded and run from. Kernel is compiled for an
++	  address which meets above alignment restriction.
++
++	  If bootloader loads the kernel at a non-aligned address and
++	  CONFIG_RELOCATABLE is set, kernel will move itself to nearest
++	  address aligned to above value and run from there.
++
++	  If bootloader loads the kernel at a non-aligned address and
++	  CONFIG_RELOCATABLE is not set, kernel will ignore the run time
++	  load address and decompress itself to the address it has been
++	  compiled for and run from there. The address for which kernel is
++	  compiled already meets above alignment restrictions. Hence the
++	  end result is that kernel runs from a physical address meeting
++	  above alignment restrictions.
++
++	  On 32-bit this value must be a multiple of 0x2000. On 64-bit
++	  this value must be a multiple of 0x200000.
++
++	  Don't change this unless you know what you are doing.
++
++config RANDOMIZE_MEMORY
++	bool "Randomize the kernel memory sections"
++	depends on X86_64
++	depends on RANDOMIZE_BASE
++	default RANDOMIZE_BASE
++	---help---
++	   Randomizes the base virtual address of kernel memory sections
++	   (physical memory mapping, vmalloc & vmemmap). This security feature
++	   makes exploits relying on predictable memory locations less reliable.
++
++	   The order of allocations remains unchanged. Entropy is generated in
++	   the same way as RANDOMIZE_BASE. Current implementation in the optimal
++	   configuration have in average 30,000 different possible virtual
++	   addresses for each memory section.
++
++	   If unsure, say Y.
++
++config RANDOMIZE_MEMORY_PHYSICAL_PADDING
++	hex "Physical memory mapping padding" if EXPERT
++	depends on RANDOMIZE_MEMORY
++	default "0xa" if MEMORY_HOTPLUG
++	default "0x0"
++	range 0x1 0x40 if MEMORY_HOTPLUG
++	range 0x0 0x40
++	---help---
++	   Define the padding in terabytes added to the existing physical
++	   memory size during kernel memory randomization. It is useful
++	   for memory hotplug support but reduces the entropy available for
++	   address randomization.
++
++	   If unsure, leave at the default value.
++
++config HOTPLUG_CPU
++	bool "Support for hot-pluggable CPUs"
++	depends on SMP
++	---help---
++	  Say Y here to allow turning CPUs off and on. CPUs can be
++	  controlled through /sys/devices/system/cpu.
++	  ( Note: power management support will enable this option
++	    automatically on SMP systems. )
++	  Say N if you want to disable CPU hotplug.
++
++config BOOTPARAM_HOTPLUG_CPU0
++	bool "Set default setting of cpu0_hotpluggable"
++	default n
++	depends on HOTPLUG_CPU
++	---help---
++	  Set whether default state of cpu0_hotpluggable is on or off.
++
++	  Say Y here to enable CPU0 hotplug by default. If this switch
++	  is turned on, there is no need to give cpu0_hotplug kernel
++	  parameter and the CPU0 hotplug feature is enabled by default.
++
++	  Please note: there are two known CPU0 dependencies if you want
++	  to enable the CPU0 hotplug feature either by this switch or by
++	  cpu0_hotplug kernel parameter.
++
++	  First, resume from hibernate or suspend always starts from CPU0.
++	  So hibernate and suspend are prevented if CPU0 is offline.
++
++	  Second dependency is PIC interrupts always go to CPU0. CPU0 can not
++	  offline if any interrupt can not migrate out of CPU0. There may
++	  be other CPU0 dependencies.
++
++	  Please make sure the dependencies are under your control before
++	  you enable this feature.
++
++	  Say N if you don't want to enable CPU0 hotplug feature by default.
++	  You still can enable the CPU0 hotplug feature at boot by kernel
++	  parameter cpu0_hotplug.
++
++config DEBUG_HOTPLUG_CPU0
++	def_bool n
++	prompt "Debug CPU0 hotplug"
++	depends on HOTPLUG_CPU
++	---help---
++	  Enabling this option offlines CPU0 (if CPU0 can be offlined) as
++	  soon as possible and boots up userspace with CPU0 offlined. User
++	  can online CPU0 back after boot time.
++
++	  To debug CPU0 hotplug, you need to enable CPU0 offline/online
++	  feature by either turning on CONFIG_BOOTPARAM_HOTPLUG_CPU0 during
++	  compilation or giving cpu0_hotplug kernel parameter at boot.
++
++	  If unsure, say N.
++
++config COMPAT_VDSO
++	def_bool n
++	prompt "Disable the 32-bit vDSO (needed for glibc 2.3.3)"
++	depends on COMPAT_32
++	---help---
++	  Certain buggy versions of glibc will crash if they are
++	  presented with a 32-bit vDSO that is not mapped at the address
++	  indicated in its segment table.
++
++	  The bug was introduced by f866314b89d56845f55e6f365e18b31ec978ec3a
++	  and fixed by 3b3ddb4f7db98ec9e912ccdf54d35df4aa30e04a and
++	  49ad572a70b8aeb91e57483a11dd1b77e31c4468.  Glibc 2.3.3 is
++	  the only released version with the bug, but OpenSUSE 9
++	  contains a buggy "glibc 2.3.2".
++
++	  The symptom of the bug is that everything crashes on startup, saying:
++	  dl_main: Assertion `(void *) ph->p_vaddr == _rtld_local._dl_sysinfo_dso' failed!
++
++	  Saying Y here changes the default value of the vdso32 boot
++	  option from 1 to 0, which turns off the 32-bit vDSO entirely.
++	  This works around the glibc bug but hurts performance.
++
++	  If unsure, say N: if you are compiling your own kernel, you
++	  are unlikely to be using a buggy version of glibc.
++
++choice
++	prompt "vsyscall table for legacy applications"
++	depends on X86_64
++	default LEGACY_VSYSCALL_EMULATE
++	help
++	  Legacy user code that does not know how to find the vDSO expects
++	  to be able to issue three syscalls by calling fixed addresses in
++	  kernel space. Since this location is not randomized with ASLR,
++	  it can be used to assist security vulnerability exploitation.
++
++	  This setting can be changed at boot time via the kernel command
++	  line parameter vsyscall=[native|emulate|none].
++
++	  On a system with recent enough glibc (2.14 or newer) and no
++	  static binaries, you can say None without a performance penalty
++	  to improve security.
++
++	  If unsure, select "Emulate".
++
++	config LEGACY_VSYSCALL_NATIVE
++		bool "Native"
++		help
++		  Actual executable code is located in the fixed vsyscall
++		  address mapping, implementing time() efficiently. Since
++		  this makes the mapping executable, it can be used during
++		  security vulnerability exploitation (traditionally as
++		  ROP gadgets). This configuration is not recommended.
++
++	config LEGACY_VSYSCALL_EMULATE
++		bool "Emulate"
++		help
++		  The kernel traps and emulates calls into the fixed
++		  vsyscall address mapping. This makes the mapping
++		  non-executable, but it still contains known contents,
++		  which could be used in certain rare security vulnerability
++		  exploits. This configuration is recommended when userspace
++		  still uses the vsyscall area.
++
++	config LEGACY_VSYSCALL_NONE
++		bool "None"
++		help
++		  There will be no vsyscall mapping at all. This will
++		  eliminate any risk of ASLR bypass due to the vsyscall
++		  fixed address mapping. Attempts to use the vsyscalls
++		  will be reported to dmesg, so that either old or
++		  malicious userspace programs can be identified.
++
++endchoice
++
++config CMDLINE_BOOL
++	bool "Built-in kernel command line"
++	---help---
++	  Allow for specifying boot arguments to the kernel at
++	  build time.  On some systems (e.g. embedded ones), it is
++	  necessary or convenient to provide some or all of the
++	  kernel boot arguments with the kernel itself (that is,
++	  to not rely on the boot loader to provide them.)
++
++	  To compile command line arguments into the kernel,
++	  set this option to 'Y', then fill in the
++	  boot arguments in CONFIG_CMDLINE.
++
++	  Systems with fully functional boot loaders (i.e. non-embedded)
++	  should leave this option set to 'N'.
++
++config CMDLINE
++	string "Built-in kernel command string"
++	depends on CMDLINE_BOOL
++	default ""
++	---help---
++	  Enter arguments here that should be compiled into the kernel
++	  image and used at boot time.  If the boot loader provides a
++	  command line at boot time, it is appended to this string to
++	  form the full kernel command line, when the system boots.
++
++	  However, you can use the CONFIG_CMDLINE_OVERRIDE option to
++	  change this behavior.
++
++	  In most cases, the command line (whether built-in or provided
++	  by the boot loader) should specify the device for the root
++	  file system.
++
++config CMDLINE_OVERRIDE
++	bool "Built-in command line overrides boot loader arguments"
++	depends on CMDLINE_BOOL
++	---help---
++	  Set this option to 'Y' to have the kernel ignore the boot loader
++	  command line, and use ONLY the built-in command line.
++
++	  This is used to work around broken boot loaders.  This should
++	  be set to 'N' under normal conditions.
++
++config MODIFY_LDT_SYSCALL
++	bool "Enable the LDT (local descriptor table)" if EXPERT
++	default y
++	---help---
++	  Linux can allow user programs to install a per-process x86
++	  Local Descriptor Table (LDT) using the modify_ldt(2) system
++	  call.  This is required to run 16-bit or segmented code such as
++	  DOSEMU or some Wine programs.  It is also used by some very old
++	  threading libraries.
++
++	  Enabling this feature adds a small amount of overhead to
++	  context switches and increases the low-level kernel attack
++	  surface.  Disabling it removes the modify_ldt(2) system call.
++
++	  Saying 'N' here may make sense for embedded or server kernels.
++
++source "kernel/livepatch/Kconfig"
++
++endmenu
++
++config ARCH_HAS_ADD_PAGES
++	def_bool y
++	depends on X86_64 && ARCH_ENABLE_MEMORY_HOTPLUG
++
++config ARCH_ENABLE_MEMORY_HOTPLUG
++	def_bool y
++	depends on X86_64 || (X86_32 && HIGHMEM)
++
++config ARCH_ENABLE_MEMORY_HOTREMOVE
++	def_bool y
++	depends on MEMORY_HOTPLUG
++
++config USE_PERCPU_NUMA_NODE_ID
++	def_bool y
++	depends on NUMA
++
++config ARCH_ENABLE_SPLIT_PMD_PTLOCK
++	def_bool y
++	depends on X86_64 || X86_PAE
++
++config ARCH_ENABLE_HUGEPAGE_MIGRATION
++	def_bool y
++	depends on X86_64 && HUGETLB_PAGE && MIGRATION
++
++config ARCH_ENABLE_THP_MIGRATION
++	def_bool y
++	depends on X86_64 && TRANSPARENT_HUGEPAGE
++
++menu "Power management and ACPI options"
++
++config ARCH_HIBERNATION_HEADER
++	def_bool y
++	depends on X86_64 && HIBERNATION
++
++source "kernel/power/Kconfig"
++
++source "drivers/acpi/Kconfig"
++
++source "drivers/sfi/Kconfig"
++
++config X86_APM_BOOT
++	def_bool y
++	depends on APM
++
++menuconfig APM
++	tristate "APM (Advanced Power Management) BIOS support"
++	depends on X86_32 && PM_SLEEP
++	---help---
++	  APM is a BIOS specification for saving power using several different
++	  techniques. This is mostly useful for battery powered laptops with
++	  APM compliant BIOSes. If you say Y here, the system time will be
++	  reset after a RESUME operation, the /proc/apm device will provide
++	  battery status information, and user-space programs will receive
++	  notification of APM "events" (e.g. battery status change).
++
++	  If you select "Y" here, you can disable actual use of the APM
++	  BIOS by passing the "apm=off" option to the kernel at boot time.
++
++	  Note that the APM support is almost completely disabled for
++	  machines with more than one CPU.
++
++	  In order to use APM, you will need supporting software. For location
++	  and more information, read <file:Documentation/power/apm-acpi.txt>
++	  and the Battery Powered Linux mini-HOWTO, available from
++	  <http://www.tldp.org/docs.html#howto>.
++
++	  This driver does not spin down disk drives (see the hdparm(8)
++	  manpage ("man 8 hdparm") for that), and it doesn't turn off
++	  VESA-compliant "green" monitors.
++
++	  This driver does not support the TI 4000M TravelMate and the ACER
++	  486/DX4/75 because they don't have compliant BIOSes. Many "green"
++	  desktop machines also don't have compliant BIOSes, and this driver
++	  may cause those machines to panic during the boot phase.
++
++	  Generally, if you don't have a battery in your machine, there isn't
++	  much point in using this driver and you should say N. If you get
++	  random kernel OOPSes or reboots that don't seem to be related to
++	  anything, try disabling/enabling this option (or disabling/enabling
++	  APM in your BIOS).
++
++	  Some other things you should try when experiencing seemingly random,
++	  "weird" problems:
++
++	  1) make sure that you have enough swap space and that it is
++	  enabled.
++	  2) pass the "no-hlt" option to the kernel
++	  3) switch on floating point emulation in the kernel and pass
++	  the "no387" option to the kernel
++	  4) pass the "floppy=nodma" option to the kernel
++	  5) pass the "mem=4M" option to the kernel (thereby disabling
++	  all but the first 4 MB of RAM)
++	  6) make sure that the CPU is not over clocked.
++	  7) read the sig11 FAQ at <http://www.bitwizard.nl/sig11/>
++	  8) disable the cache from your BIOS settings
++	  9) install a fan for the video card or exchange video RAM
++	  10) install a better fan for the CPU
++	  11) exchange RAM chips
++	  12) exchange the motherboard.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called apm.
++
++if APM
++
++config APM_IGNORE_USER_SUSPEND
++	bool "Ignore USER SUSPEND"
++	---help---
++	  This option will ignore USER SUSPEND requests. On machines with a
++	  compliant APM BIOS, you want to say N. However, on the NEC Versa M
++	  series notebooks, it is necessary to say Y because of a BIOS bug.
++
++config APM_DO_ENABLE
++	bool "Enable PM at boot time"
++	---help---
++	  Enable APM features at boot time. From page 36 of the APM BIOS
++	  specification: "When disabled, the APM BIOS does not automatically
++	  power manage devices, enter the Standby State, enter the Suspend
++	  State, or take power saving steps in response to CPU Idle calls."
++	  This driver will make CPU Idle calls when Linux is idle (unless this
++	  feature is turned off -- see "Do CPU IDLE calls", below). This
++	  should always save battery power, but more complicated APM features
++	  will be dependent on your BIOS implementation. You may need to turn
++	  this option off if your computer hangs at boot time when using APM
++	  support, or if it beeps continuously instead of suspending. Turn
++	  this off if you have a NEC UltraLite Versa 33/C or a Toshiba
++	  T400CDT. This is off by default since most machines do fine without
++	  this feature.
++
++config APM_CPU_IDLE
++	depends on CPU_IDLE
++	bool "Make CPU Idle calls when idle"
++	---help---
++	  Enable calls to APM CPU Idle/CPU Busy inside the kernel's idle loop.
++	  On some machines, this can activate improved power savings, such as
++	  a slowed CPU clock rate, when the machine is idle. These idle calls
++	  are made after the idle loop has run for some length of time (e.g.,
++	  333 mS). On some machines, this will cause a hang at boot time or
++	  whenever the CPU becomes idle. (On machines with more than one CPU,
++	  this option does nothing.)
++
++config APM_DISPLAY_BLANK
++	bool "Enable console blanking using APM"
++	---help---
++	  Enable console blanking using the APM. Some laptops can use this to
++	  turn off the LCD backlight when the screen blanker of the Linux
++	  virtual console blanks the screen. Note that this is only used by
++	  the virtual console screen blanker, and won't turn off the backlight
++	  when using the X Window system. This also doesn't have anything to
++	  do with your VESA-compliant power-saving monitor. Further, this
++	  option doesn't work for all laptops -- it might not turn off your
++	  backlight at all, or it might print a lot of errors to the console,
++	  especially if you are using gpm.
++
++config APM_ALLOW_INTS
++	bool "Allow interrupts during APM BIOS calls"
++	---help---
++	  Normally we disable external interrupts while we are making calls to
++	  the APM BIOS as a measure to lessen the effects of a badly behaving
++	  BIOS implementation.  The BIOS should reenable interrupts if it
++	  needs to.  Unfortunately, some BIOSes do not -- especially those in
++	  many of the newer IBM Thinkpads.  If you experience hangs when you
++	  suspend, try setting this to Y.  Otherwise, say N.
++
++endif # APM
++
++source "drivers/cpufreq/Kconfig"
++
++source "drivers/cpuidle/Kconfig"
++
++source "drivers/idle/Kconfig"
++
++endmenu
++
++
++menu "Bus options (PCI etc.)"
++
++config PCI
++	bool "PCI support"
++	default y
++	---help---
++	  Find out whether you have a PCI motherboard. PCI is the name of a
++	  bus system, i.e. the way the CPU talks to the other stuff inside
++	  your box. Other bus systems are ISA, EISA, MicroChannel (MCA) or
++	  VESA. If you have PCI, say Y, otherwise N.
++
++choice
++	prompt "PCI access mode"
++	depends on X86_32 && PCI
++	default PCI_GOANY
++	---help---
++	  On PCI systems, the BIOS can be used to detect the PCI devices and
++	  determine their configuration. However, some old PCI motherboards
++	  have BIOS bugs and may crash if this is done. Also, some embedded
++	  PCI-based systems don't have any BIOS at all. Linux can also try to
++	  detect the PCI hardware directly without using the BIOS.
++
++	  With this option, you can specify how Linux should detect the
++	  PCI devices. If you choose "BIOS", the BIOS will be used,
++	  if you choose "Direct", the BIOS won't be used, and if you
++	  choose "MMConfig", then PCI Express MMCONFIG will be used.
++	  If you choose "Any", the kernel will try MMCONFIG, then the
++	  direct access method and falls back to the BIOS if that doesn't
++	  work. If unsure, go with the default, which is "Any".
++
++config PCI_GOBIOS
++	bool "BIOS"
++
++config PCI_GOMMCONFIG
++	bool "MMConfig"
++
++config PCI_GODIRECT
++	bool "Direct"
++
++config PCI_GOOLPC
++	bool "OLPC XO-1"
++	depends on OLPC
++
++config PCI_GOANY
++	bool "Any"
++
++endchoice
++
++config PCI_BIOS
++	def_bool y
++	depends on X86_32 && PCI && (PCI_GOBIOS || PCI_GOANY)
++
++# x86-64 doesn't support PCI BIOS access from long mode so always go direct.
++config PCI_DIRECT
++	def_bool y
++	depends on PCI && (X86_64 || (PCI_GODIRECT || PCI_GOANY || PCI_GOOLPC || PCI_GOMMCONFIG))
++
++config PCI_MMCONFIG
++	def_bool y
++	depends on X86_32 && PCI && (ACPI || SFI) && (PCI_GOMMCONFIG || PCI_GOANY)
++
++config PCI_OLPC
++	def_bool y
++	depends on PCI && OLPC && (PCI_GOOLPC || PCI_GOANY)
++
++config PCI_XEN
++	def_bool y
++	depends on PCI && XEN
++	select SWIOTLB_XEN
++
++config PCI_DOMAINS
++	def_bool y
++	depends on PCI
++
++config PCI_MMCONFIG
++	bool "Support mmconfig PCI config space access"
++	depends on X86_64 && PCI && ACPI
++
++config PCI_CNB20LE_QUIRK
++	bool "Read CNB20LE Host Bridge Windows" if EXPERT
++	depends on PCI
++	help
++	  Read the PCI windows out of the CNB20LE host bridge. This allows
++	  PCI hotplug to work on systems with the CNB20LE chipset which do
++	  not have ACPI.
++
++	  There's no public spec for this chipset, and this functionality
++	  is known to be incomplete.
++
++	  You should say N unless you know you need this.
++
++source "drivers/pci/Kconfig"
++
++config ISA_BUS
++	bool "ISA-style bus support on modern systems" if EXPERT
++	select ISA_BUS_API
++	help
++	  Enables ISA-style drivers on modern systems. This is necessary to
++	  support PC/104 devices on X86_64 platforms.
++
++	  If unsure, say N.
++
++# x86_64 have no ISA slots, but can have ISA-style DMA.
++config ISA_DMA_API
++	bool "ISA-style DMA support" if (X86_64 && EXPERT)
++	default y
++	help
++	  Enables ISA-style DMA support for devices requiring such controllers.
++	  If unsure, say Y.
++
++if X86_32
++
++config ISA
++	bool "ISA support"
++	---help---
++	  Find out whether you have ISA slots on your motherboard.  ISA is the
++	  name of a bus system, i.e. the way the CPU talks to the other stuff
++	  inside your box.  Other bus systems are PCI, EISA, MicroChannel
++	  (MCA) or VESA.  ISA is an older system, now being displaced by PCI;
++	  newer boards don't support it.  If you have ISA, say Y, otherwise N.
++
++config EISA
++	bool "EISA support"
++	depends on ISA
++	---help---
++	  The Extended Industry Standard Architecture (EISA) bus was
++	  developed as an open alternative to the IBM MicroChannel bus.
++
++	  The EISA bus provided some of the features of the IBM MicroChannel
++	  bus while maintaining backward compatibility with cards made for
++	  the older ISA bus.  The EISA bus saw limited use between 1988 and
++	  1995 when it was made obsolete by the PCI bus.
++
++	  Say Y here if you are building a kernel for an EISA-based machine.
++
++	  Otherwise, say N.
++
++source "drivers/eisa/Kconfig"
++
++config SCx200
++	tristate "NatSemi SCx200 support"
++	---help---
++	  This provides basic support for National Semiconductor's
++	  (now AMD's) Geode processors.  The driver probes for the
++	  PCI-IDs of several on-chip devices, so its a good dependency
++	  for other scx200_* drivers.
++
++	  If compiled as a module, the driver is named scx200.
++
++config SCx200HR_TIMER
++	tristate "NatSemi SCx200 27MHz High-Resolution Timer Support"
++	depends on SCx200
++	default y
++	---help---
++	  This driver provides a clocksource built upon the on-chip
++	  27MHz high-resolution timer.  Its also a workaround for
++	  NSC Geode SC-1100's buggy TSC, which loses time when the
++	  processor goes idle (as is done by the scheduler).  The
++	  other workaround is idle=poll boot option.
++
++config OLPC
++	bool "One Laptop Per Child support"
++	depends on !X86_PAE
++	select GPIOLIB
++	select OF
++	select OF_PROMTREE
++	select IRQ_DOMAIN
++	---help---
++	  Add support for detecting the unique features of the OLPC
++	  XO hardware.
++
++config OLPC_XO1_PM
++	bool "OLPC XO-1 Power Management"
++	depends on OLPC && MFD_CS5535 && PM_SLEEP
++	select MFD_CORE
++	---help---
++	  Add support for poweroff and suspend of the OLPC XO-1 laptop.
++
++config OLPC_XO1_RTC
++	bool "OLPC XO-1 Real Time Clock"
++	depends on OLPC_XO1_PM && RTC_DRV_CMOS
++	---help---
++	  Add support for the XO-1 real time clock, which can be used as a
++	  programmable wakeup source.
++
++config OLPC_XO1_SCI
++	bool "OLPC XO-1 SCI extras"
++	depends on OLPC && OLPC_XO1_PM
++	depends on INPUT=y
++	select POWER_SUPPLY
++	select GPIO_CS5535
++	select MFD_CORE
++	---help---
++	  Add support for SCI-based features of the OLPC XO-1 laptop:
++	   - EC-driven system wakeups
++	   - Power button
++	   - Ebook switch
++	   - Lid switch
++	   - AC adapter status updates
++	   - Battery status updates
++
++config OLPC_XO15_SCI
++	bool "OLPC XO-1.5 SCI extras"
++	depends on OLPC && ACPI
++	select POWER_SUPPLY
++	---help---
++	  Add support for SCI-based features of the OLPC XO-1.5 laptop:
++	   - EC-driven system wakeups
++	   - AC adapter status updates
++	   - Battery status updates
++
++config ALIX
++	bool "PCEngines ALIX System Support (LED setup)"
++	select GPIOLIB
++	---help---
++	  This option enables system support for the PCEngines ALIX.
++	  At present this just sets up LEDs for GPIO control on
++	  ALIX2/3/6 boards.  However, other system specific setup should
++	  get added here.
++
++	  Note: You must still enable the drivers for GPIO and LED support
++	  (GPIO_CS5535 & LEDS_GPIO) to actually use the LEDs
++
++	  Note: You have to set alix.force=1 for boards with Award BIOS.
++
++config NET5501
++	bool "Soekris Engineering net5501 System Support (LEDS, GPIO, etc)"
++	select GPIOLIB
++	---help---
++	  This option enables system support for the Soekris Engineering net5501.
++
++config GEOS
++	bool "Traverse Technologies GEOS System Support (LEDS, GPIO, etc)"
++	select GPIOLIB
++	depends on DMI
++	---help---
++	  This option enables system support for the Traverse Technologies GEOS.
++
++config TS5500
++	bool "Technologic Systems TS-5500 platform support"
++	depends on MELAN
++	select CHECK_SIGNATURE
++	select NEW_LEDS
++	select LEDS_CLASS
++	---help---
++	  This option enables system support for the Technologic Systems TS-5500.
++
++endif # X86_32
++
++config AMD_NB
++	def_bool y
++	depends on CPU_SUP_AMD && PCI
++
++source "drivers/pcmcia/Kconfig"
++
++config RAPIDIO
++	tristate "RapidIO support"
++	depends on PCI
++	default n
++	help
++	  If enabled this option will include drivers and the core
++	  infrastructure code to support RapidIO interconnect devices.
++
++source "drivers/rapidio/Kconfig"
++
++config X86_SYSFB
++	bool "Mark VGA/VBE/EFI FB as generic system framebuffer"
++	help
++	  Firmwares often provide initial graphics framebuffers so the BIOS,
++	  bootloader or kernel can show basic video-output during boot for
++	  user-guidance and debugging. Historically, x86 used the VESA BIOS
++	  Extensions and EFI-framebuffers for this, which are mostly limited
++	  to x86.
++	  This option, if enabled, marks VGA/VBE/EFI framebuffers as generic
++	  framebuffers so the new generic system-framebuffer drivers can be
++	  used on x86. If the framebuffer is not compatible with the generic
++	  modes, it is adverticed as fallback platform framebuffer so legacy
++	  drivers like efifb, vesafb and uvesafb can pick it up.
++	  If this option is not selected, all system framebuffers are always
++	  marked as fallback platform framebuffers as usual.
++
++	  Note: Legacy fbdev drivers, including vesafb, efifb, uvesafb, will
++	  not be able to pick up generic system framebuffers if this option
++	  is selected. You are highly encouraged to enable simplefb as
++	  replacement if you select this option. simplefb can correctly deal
++	  with generic system framebuffers. But you should still keep vesafb
++	  and others enabled as fallback if a system framebuffer is
++	  incompatible with simplefb.
++
++	  If unsure, say Y.
++
++endmenu
++
++
++menu "Executable file formats / Emulations"
++
++source "fs/Kconfig.binfmt"
++
++config IA32_EMULATION
++	bool "IA32 Emulation"
++	depends on X86_64
++	select ARCH_WANT_OLD_COMPAT_IPC
++	select BINFMT_ELF
++	select COMPAT_BINFMT_ELF
++	select COMPAT_OLD_SIGACTION
++	---help---
++	  Include code to run legacy 32-bit programs under a
++	  64-bit kernel. You should likely turn this on, unless you're
++	  100% sure that you don't have any 32-bit programs left.
++
++config IA32_AOUT
++	tristate "IA32 a.out support"
++	depends on IA32_EMULATION
++	---help---
++	  Support old a.out binaries in the 32bit emulation.
++
++config X86_X32
++	bool "x32 ABI for 64-bit mode"
++	depends on X86_64
++	---help---
++	  Include code to run binaries for the x32 native 32-bit ABI
++	  for 64-bit processors.  An x32 process gets access to the
++	  full 64-bit register file and wide data path while leaving
++	  pointers at 32 bits for smaller memory footprint.
++
++	  You will need a recent binutils (2.22 or later) with
++	  elf32_x86_64 support enabled to compile a kernel with this
++	  option set.
++
++config COMPAT_32
++	def_bool y
++	depends on IA32_EMULATION || X86_32
++	select HAVE_UID16
++	select OLD_SIGSUSPEND3
++
++config COMPAT
++	def_bool y
++	depends on IA32_EMULATION || X86_X32
++
++if COMPAT
++config COMPAT_FOR_U64_ALIGNMENT
++	def_bool y
++
++config SYSVIPC_COMPAT
++	def_bool y
++	depends on SYSVIPC
++endif
++
++endmenu
++
++
++config HAVE_ATOMIC_IOMAP
++	def_bool y
++	depends on X86_32
++
++config X86_DEV_DMA_OPS
++	bool
++	depends on X86_64 || STA2X11
++
++config X86_DMA_REMAP
++	bool
++	depends on STA2X11
++
++config HAVE_GENERIC_GUP
++	def_bool y
++
++source "net/Kconfig"
++
++source "drivers/Kconfig"
++
++source "drivers/firmware/Kconfig"
++
++source "fs/Kconfig"
++
++source "arch/x86/Kconfig.debug"
++
++source "security/Kconfig"
++
++source "crypto/Kconfig"
++
++source "arch/x86/kvm/Kconfig"
++
++source "lib/Kconfig"
+diff -uprN 4.14.79/arch/x86/Kconfig.rej 4.14.79_popcorn/arch/x86/Kconfig.rej
+--- 4.14.79/arch/x86/Kconfig.rej	1969-12-31 19:00:00.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/Kconfig.rej	2020-05-24 22:41:27.694914992 -0400
+@@ -0,0 +1,18 @@
++--- arch/x86/Kconfig	2018-06-13 10:15:29.000000000 -0400
+++++ arch/x86/Kconfig	2020-03-30 16:06:48.506736018 -0400
++@@ -47,6 +47,7 @@ config X86
++ 	select ARCH_WANT_FRAME_POINTERS
++ 	select ARCH_WANT_IPC_PARSE_VERSION	if X86_32
++ 	select ARCH_WANT_OPTIONAL_GPIOLIB
+++	select ARCH_SUPPORTS_POPCORN	if X86_64
++ 	select BUILDTIME_EXTABLE_SORT
++ 	select CLKEVT_I8253
++ 	select CLKSRC_I8253			if X86_32
++@@ -294,6 +295,7 @@ config PGTABLE_LEVELS
++ 
++ source "init/Kconfig"
++ source "kernel/Kconfig.freezer"
+++source "kernel/Kconfig.popcorn"
++ 
++ menu "Processor type and features"
++ 
+diff -uprN 4.14.79/arch/x86/kernel/cpu/bugs_64.c 4.14.79_popcorn/arch/x86/kernel/cpu/bugs_64.c
+--- 4.14.79/arch/x86/kernel/cpu/bugs_64.c	1969-12-31 19:00:00.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/kernel/cpu/bugs_64.c	2020-05-24 22:41:27.734914867 -0400
+@@ -0,0 +1,33 @@
++/*
++ *  Copyright (C) 1994  Linus Torvalds
++ *  Copyright (C) 2000  SuSE
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <asm/alternative.h>
++#include <asm/bugs.h>
++#include <asm/processor.h>
++#include <asm/mtrr.h>
++#include <asm/cacheflush.h>
++
++void __init check_bugs(void)
++{
++	identify_boot_cpu();
++#if !defined(CONFIG_SMP)
++	printk(KERN_INFO "CPU: ");
++	print_cpu_info(&boot_cpu_data);
++#endif
++	alternative_instructions();
++
++	/*
++	 * Make sure the first 2MB area is not mapped by huge pages
++	 * There are typically fixed size MTRRs in there and overlapping
++	 * MTRRs into large pages causes slow downs.
++	 *
++	 * Right now we don't do that with gbpages because there seems
++	 * very little benefit for that case.
++	 */
++	if (!direct_gbpages)
++		set_memory_4k((unsigned long)__va(0), 1);
++}
+diff -uprN 4.14.79/arch/x86/kernel/cpu/proc.c 4.14.79_popcorn/arch/x86/kernel/cpu/proc.c
+--- 4.14.79/arch/x86/kernel/cpu/proc.c	2018-11-04 08:52:51.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/kernel/cpu/proc.c	2020-05-24 22:41:27.738914855 -0400
+@@ -7,6 +7,29 @@
+ 
+ #include "cpu.h"
+ 
++#include <popcorn/bundle.h>
++
++extern void send_remote_cpu_info_request(unsigned int nid);
++extern unsigned int get_number_cpus_from_remote_node(unsigned int nid);
++extern int remote_proc_cpu_info(struct seq_file *m, unsigned int nid,
++				unsigned int vpos);
++
++static struct cpu_global_info {
++	unsigned int remote;
++	struct cpuinfo_x86 *c;
++	unsigned int vpos;
++	unsigned int nid;
++} cpu_global_info;
++
++static struct cpuinfo_x86 c;
++
++/*
++ * num_cpus: # of cores of each nodes
++ * num_total_cpus: # of total cpus of all connected nodes
++ */
++static unsigned int num_cpus[MAX_POPCORN_NODES];
++static unsigned int num_total_cpus;
++
+ /*
+  *	Get CPU information for use by the procfs.
+  */
+@@ -141,11 +164,102 @@ static int show_cpuinfo(struct seq_file
+ 	return 0;
+ }
+ 
++static void calc_nid_vpos(loff_t *pos, unsigned int *pnid, unsigned int *vpos)
++{
++	int i = 0;
++
++	*pnid = 0;
++	*vpos = 0;
++
++	for (i = nr_cpu_ids; i <= num_total_cpus; i++) {
++		if ((*pnid) == my_nid)
++			(*pnid)++;
++
++		if ((*vpos) == num_cpus[*pnid]) {
++			*vpos = 0;
++			(*pnid)++;
++		}
++
++		if (i == (*pos))
++			break;
++
++		(*vpos)++;
++	}
++}
++
+ static void *c_start(struct seq_file *m, loff_t *pos)
+ {
++	unsigned int vpos = 0;
++	unsigned int nid = 0;
++
++	if (my_nid == -1)
++		goto local;
++
++	if ((*pos) < nr_cpu_ids) {
++		goto local;
++	} else if ((*pos) == nr_cpu_ids) {
++		int i = 0;
++		int j = 0;
++		bool connected = false;
++
++		/* Check the connection with remote nodes */
++		for (i = 0; i < MAX_POPCORN_NODES; i++) {
++			if (get_popcorn_node_online(i)) {
++				connected = true;
++				break;
++			}
++		}
++
++		if (connected == false) {
++			/* No connection */
++			goto local;
++		} else {
++			/* Connection with remote nodes */
++			for (i = 0; i < MAX_POPCORN_NODES; i++) {
++				if (i == my_nid) {
++					num_cpus[i] = nr_cpu_ids;
++					j = j + nr_cpu_ids;
++					continue;
++				}
++				if (get_popcorn_node_online(i)) {
++					send_remote_cpu_info_request(i);
++					num_cpus[i] = get_number_cpus_from_remote_node(i);
++					j = j + num_cpus[i];
++				} else {
++					num_cpus[i] = 0;
++				}
++			}
++
++			num_total_cpus = j;
++			goto remote;
++		}
++	} else if ((*pos) > nr_cpu_ids) {
++		goto remote;
++	}
++
++local:
+ 	*pos = cpumask_next(*pos - 1, cpu_online_mask);
+-	if ((*pos) < nr_cpu_ids)
+-		return &cpu_data(*pos);
++	if ((*pos) < nr_cpu_ids) {
++		cpu_global_info.remote = 0;
++		c = cpu_data(*pos);
++		cpu_global_info.c = &c;
++
++		return &cpu_global_info;
++	}
++
++	return NULL;
++
++remote:
++	if ((*pos) < num_total_cpus) {
++		calc_nid_vpos(pos, &nid, &vpos);
++
++		cpu_global_info.remote = 1;
++		cpu_global_info.vpos = vpos;
++		cpu_global_info.nid = nid;
++
++		return &cpu_global_info;
++	}
++
+ 	return NULL;
+ }
+ 
+@@ -159,9 +273,26 @@ static void c_stop(struct seq_file *m, v
+ {
+ }
+ 
++static int c_show(struct seq_file *m, void *v)
++{
++	struct cpu_global_info *cpu_global_info = v;
++	struct cpuinfo_x86 *c;
++
++	if (cpu_global_info->remote == 1) {
++		remote_proc_cpu_info(m,
++			cpu_global_info->nid,
++			cpu_global_info->vpos);
++	} else {
++		c = cpu_global_info->c;
++		show_cpuinfo(m, c);
++	}
++
++	return 0;
++}
++
+ const struct seq_operations cpuinfo_op = {
+ 	.start	= c_start,
+ 	.next	= c_next,
+ 	.stop	= c_stop,
+-	.show	= show_cpuinfo,
++	.show	= c_show,
+ };
+diff -uprN 4.14.79/arch/x86/kernel/cpu/proc.c.orig 4.14.79_popcorn/arch/x86/kernel/cpu/proc.c.orig
+--- 4.14.79/arch/x86/kernel/cpu/proc.c.orig	1969-12-31 19:00:00.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/kernel/cpu/proc.c.orig	2020-05-24 22:41:27.738914855 -0400
+@@ -0,0 +1,167 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <linux/smp.h>
++#include <linux/timex.h>
++#include <linux/string.h>
++#include <linux/seq_file.h>
++#include <linux/cpufreq.h>
++
++#include "cpu.h"
++
++/*
++ *	Get CPU information for use by the procfs.
++ */
++static void show_cpuinfo_core(struct seq_file *m, struct cpuinfo_x86 *c,
++			      unsigned int cpu)
++{
++#ifdef CONFIG_SMP
++	seq_printf(m, "physical id\t: %d\n", c->phys_proc_id);
++	seq_printf(m, "siblings\t: %d\n",
++		   cpumask_weight(topology_core_cpumask(cpu)));
++	seq_printf(m, "core id\t\t: %d\n", c->cpu_core_id);
++	seq_printf(m, "cpu cores\t: %d\n", c->booted_cores);
++	seq_printf(m, "apicid\t\t: %d\n", c->apicid);
++	seq_printf(m, "initial apicid\t: %d\n", c->initial_apicid);
++#endif
++}
++
++#ifdef CONFIG_X86_32
++static void show_cpuinfo_misc(struct seq_file *m, struct cpuinfo_x86 *c)
++{
++	seq_printf(m,
++		   "fdiv_bug\t: %s\n"
++		   "f00f_bug\t: %s\n"
++		   "coma_bug\t: %s\n"
++		   "fpu\t\t: %s\n"
++		   "fpu_exception\t: %s\n"
++		   "cpuid level\t: %d\n"
++		   "wp\t\t: yes\n",
++		   static_cpu_has_bug(X86_BUG_FDIV) ? "yes" : "no",
++		   static_cpu_has_bug(X86_BUG_F00F) ? "yes" : "no",
++		   static_cpu_has_bug(X86_BUG_COMA) ? "yes" : "no",
++		   static_cpu_has(X86_FEATURE_FPU) ? "yes" : "no",
++		   static_cpu_has(X86_FEATURE_FPU) ? "yes" : "no",
++		   c->cpuid_level);
++}
++#else
++static void show_cpuinfo_misc(struct seq_file *m, struct cpuinfo_x86 *c)
++{
++	seq_printf(m,
++		   "fpu\t\t: yes\n"
++		   "fpu_exception\t: yes\n"
++		   "cpuid level\t: %d\n"
++		   "wp\t\t: yes\n",
++		   c->cpuid_level);
++}
++#endif
++
++static int show_cpuinfo(struct seq_file *m, void *v)
++{
++	struct cpuinfo_x86 *c = v;
++	unsigned int cpu;
++	int i;
++
++	cpu = c->cpu_index;
++	seq_printf(m, "processor\t: %u\n"
++		   "vendor_id\t: %s\n"
++		   "cpu family\t: %d\n"
++		   "model\t\t: %u\n"
++		   "model name\t: %s\n",
++		   cpu,
++		   c->x86_vendor_id[0] ? c->x86_vendor_id : "unknown",
++		   c->x86,
++		   c->x86_model,
++		   c->x86_model_id[0] ? c->x86_model_id : "unknown");
++
++	if (c->x86_stepping || c->cpuid_level >= 0)
++		seq_printf(m, "stepping\t: %d\n", c->x86_stepping);
++	else
++		seq_puts(m, "stepping\t: unknown\n");
++	if (c->microcode)
++		seq_printf(m, "microcode\t: 0x%x\n", c->microcode);
++
++	if (cpu_has(c, X86_FEATURE_TSC)) {
++		unsigned int freq = aperfmperf_get_khz(cpu);
++
++		if (!freq)
++			freq = cpufreq_quick_get(cpu);
++		if (!freq)
++			freq = cpu_khz;
++		seq_printf(m, "cpu MHz\t\t: %u.%03u\n",
++			   freq / 1000, (freq % 1000));
++	}
++
++	/* Cache size */
++	if (c->x86_cache_size)
++		seq_printf(m, "cache size\t: %u KB\n", c->x86_cache_size);
++
++	show_cpuinfo_core(m, c, cpu);
++	show_cpuinfo_misc(m, c);
++
++	seq_puts(m, "flags\t\t:");
++	for (i = 0; i < 32*NCAPINTS; i++)
++		if (cpu_has(c, i) && x86_cap_flags[i] != NULL)
++			seq_printf(m, " %s", x86_cap_flags[i]);
++
++	seq_puts(m, "\nbugs\t\t:");
++	for (i = 0; i < 32*NBUGINTS; i++) {
++		unsigned int bug_bit = 32*NCAPINTS + i;
++
++		if (cpu_has_bug(c, bug_bit) && x86_bug_flags[i])
++			seq_printf(m, " %s", x86_bug_flags[i]);
++	}
++
++	seq_printf(m, "\nbogomips\t: %lu.%02lu\n",
++		   c->loops_per_jiffy/(500000/HZ),
++		   (c->loops_per_jiffy/(5000/HZ)) % 100);
++
++#ifdef CONFIG_X86_64
++	if (c->x86_tlbsize > 0)
++		seq_printf(m, "TLB size\t: %d 4K pages\n", c->x86_tlbsize);
++#endif
++	seq_printf(m, "clflush size\t: %u\n", c->x86_clflush_size);
++	seq_printf(m, "cache_alignment\t: %d\n", c->x86_cache_alignment);
++	seq_printf(m, "address sizes\t: %u bits physical, %u bits virtual\n",
++		   c->x86_phys_bits, c->x86_virt_bits);
++
++	seq_puts(m, "power management:");
++	for (i = 0; i < 32; i++) {
++		if (c->x86_power & (1 << i)) {
++			if (i < ARRAY_SIZE(x86_power_flags) &&
++			    x86_power_flags[i])
++				seq_printf(m, "%s%s",
++					   x86_power_flags[i][0] ? " " : "",
++					   x86_power_flags[i]);
++			else
++				seq_printf(m, " [%d]", i);
++		}
++	}
++
++	seq_puts(m, "\n\n");
++
++	return 0;
++}
++
++static void *c_start(struct seq_file *m, loff_t *pos)
++{
++	*pos = cpumask_next(*pos - 1, cpu_online_mask);
++	if ((*pos) < nr_cpu_ids)
++		return &cpu_data(*pos);
++	return NULL;
++}
++
++static void *c_next(struct seq_file *m, void *v, loff_t *pos)
++{
++	(*pos)++;
++	return c_start(m, pos);
++}
++
++static void c_stop(struct seq_file *m, void *v)
++{
++}
++
++const struct seq_operations cpuinfo_op = {
++	.start	= c_start,
++	.next	= c_next,
++	.stop	= c_stop,
++	.show	= show_cpuinfo,
++};
+diff -uprN 4.14.79/arch/x86/kernel/cpuinfo.c 4.14.79_popcorn/arch/x86/kernel/cpuinfo.c
+--- 4.14.79/arch/x86/kernel/cpuinfo.c	1969-12-31 19:00:00.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/kernel/cpuinfo.c	2020-05-24 22:41:27.738914855 -0400
+@@ -0,0 +1,142 @@
++/*
++ * File:
++  * popcorn_cpuinfo_arch.c
++ *
++ * Description:
++ * 	this file provides the architecture specific functionality of
++  * populating cpuinfo
++ *
++ * Created on:
++ * 	Oct 10, 2014
++ *
++ * Author:
++ * 	Sharath Kumar Bhat, SSRG, VirginiaTech
++ *
++ */
++#include <linux/kernel.h>
++#include <linux/smp.h>
++#include <linux/cpu.h>
++#include <linux/slab.h>
++#include <linux/timex.h>
++#include <linux/timer.h>
++#include <linux/delay.h>
++
++#include <linux/cpufreq.h>
++
++#include <popcorn/cpuinfo.h>
++
++static void *remote_c_start(loff_t *pos)
++{
++	if (*pos == 0) /* just in case, cpu 0 is not the first */
++		*pos = cpumask_first(cpu_online_mask);
++	else {
++		*pos = cpumask_next(*pos - 1, cpu_online_mask);
++	}
++
++	if ((*pos) < nr_cpu_ids)
++		return &cpu_data(*pos);
++	return NULL;
++}
++
++int fill_cpu_info(struct remote_cpu_info *res)
++{
++	loff_t pos = 0;
++	struct cpuinfo_x86 *c;
++	unsigned int cpu = 0;
++	int i, count = 0;
++	struct cpuinfo_arch_x86 *arch = &res->x86;
++
++	res->arch_type = POPCORN_ARCH_X86;
++
++	while (count < NR_CPUS) {
++		void *p = remote_c_start(&pos);
++		struct percore_info_x86 *core = &arch->cores[count];
++
++		if(p == NULL)
++			break;
++
++		c = p;
++		pos++;
++
++#ifdef CONFIG_SMP
++		cpu = c->cpu_index;
++#endif
++		core->processor = cpu;
++		strcpy(core->vendor_id,
++				c->x86_vendor_id[0] ? c->x86_vendor_id : "unknown");
++		core->cpu_family = c->x86;
++		core->model = c->x86_model;
++		strcpy(core->model_name,
++				c->x86_model_id[0] ? c->x86_model_id : "unknown");
++
++		if (c->x86_stepping || c->cpuid_level >= 0)
++			core->stepping = c->x86_stepping;
++		else
++			core->stepping = -1;
++
++		if (c->microcode)
++			core->microcode = c->microcode;
++
++		if (cpu_has(c, X86_FEATURE_TSC)) {
++			unsigned int freq = cpufreq_quick_get(cpu);
++
++			if (!freq)
++				freq = cpu_khz;
++			core->cpu_freq = freq / 1000;
++		}
++
++		/* Cache size */
++		if (c->x86_cache_size >= 0)
++			core->cache_size = c->x86_cache_size;
++
++		strcpy(core->fpu, "yes");
++		strcpy(core->fpu_exception, "yes");
++		core->cpuid_level = c->cpuid_level;
++		strcpy(core->wp, "yes");
++
++		strcpy(core->flags, "");
++		for (i = 0; i < 32 * NCAPINTS; i++)
++			if (cpu_has(c, i) && x86_cap_flags[i] != NULL){
++				strcat(core->flags, x86_cap_flags[i]);
++				strcat(core->flags, " ");
++			}
++
++		core->nbogomips = c->loops_per_jiffy / (500000 / HZ);
++
++#ifdef CONFIG_X86_64
++		if (c->x86_tlbsize > 0)
++			core->TLB_size = c->x86_tlbsize;
++#endif
++		core->clflush_size = c->x86_clflush_size;
++		core->cache_alignment = c->x86_cache_alignment;
++		core->bits_physical = c->x86_phys_bits;
++		core->bits_virtual = c->x86_virt_bits;
++
++		strcpy(core->power_management, "");
++		for (i = 0; i < 32; i++) {
++			if (c->x86_power & (1 << i)) {
++				if (i < ARRAY_SIZE(x86_power_flags) && x86_power_flags[i])
++					strcat(core->flags,
++							x86_power_flags[i][0] ? " " : "");
++			}
++		}
++
++		count++;
++	}
++	arch->num_cpus = count;
++
++	return 0;
++}
++
++int get_proccessor_id(void)
++{
++	unsigned int a, b, feat;
++
++	asm volatile(
++			 "cpuid"							// call cpuid
++			 : "=a" (a), "=b" (b), "=d" (feat)	// outputs
++			 : "0" (1)							// inputs
++			 : "cx" );
++
++	return !(feat & (1 << 25));
++}
+diff -uprN 4.14.79/arch/x86/kernel/Makefile 4.14.79_popcorn/arch/x86/kernel/Makefile
+--- 4.14.79/arch/x86/kernel/Makefile	2018-11-04 08:52:51.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/kernel/Makefile	2020-05-24 22:41:27.730914880 -0400
+@@ -133,6 +133,8 @@ obj-$(CONFIG_UNWINDER_ORC)		+= unwind_or
+ obj-$(CONFIG_UNWINDER_FRAME_POINTER)	+= unwind_frame.o
+ obj-$(CONFIG_UNWINDER_GUESS)		+= unwind_guess.o
+ 
++obj-$(CONFIG_POPCORN)		+= cpuinfo.o process_server.o
++
+ ###
+ # 64 bit specific files
+ ifeq ($(CONFIG_X86_64),y)
+diff -uprN 4.14.79/arch/x86/kernel/Makefile.orig 4.14.79_popcorn/arch/x86/kernel/Makefile.orig
+--- 4.14.79/arch/x86/kernel/Makefile.orig	1969-12-31 19:00:00.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/kernel/Makefile.orig	2020-05-24 22:41:27.730914880 -0400
+@@ -0,0 +1,146 @@
++# SPDX-License-Identifier: GPL-2.0
++#
++# Makefile for the linux kernel.
++#
++
++extra-y	:= head_$(BITS).o
++extra-y	+= head$(BITS).o
++extra-y	+= ebda.o
++extra-y	+= platform-quirks.o
++extra-y	+= vmlinux.lds
++
++CPPFLAGS_vmlinux.lds += -U$(UTS_MACHINE)
++
++ifdef CONFIG_FUNCTION_TRACER
++# Do not profile debug and lowlevel utilities
++CFLAGS_REMOVE_tsc.o = -pg
++CFLAGS_REMOVE_paravirt-spinlocks.o = -pg
++CFLAGS_REMOVE_pvclock.o = -pg
++CFLAGS_REMOVE_kvmclock.o = -pg
++CFLAGS_REMOVE_ftrace.o = -pg
++CFLAGS_REMOVE_early_printk.o = -pg
++CFLAGS_REMOVE_head64.o = -pg
++endif
++
++KASAN_SANITIZE_head$(BITS).o				:= n
++KASAN_SANITIZE_dumpstack.o				:= n
++KASAN_SANITIZE_dumpstack_$(BITS).o			:= n
++KASAN_SANITIZE_stacktrace.o				:= n
++KASAN_SANITIZE_paravirt.o				:= n
++
++OBJECT_FILES_NON_STANDARD_relocate_kernel_$(BITS).o	:= y
++OBJECT_FILES_NON_STANDARD_ftrace_$(BITS).o		:= y
++OBJECT_FILES_NON_STANDARD_test_nx.o			:= y
++OBJECT_FILES_NON_STANDARD_paravirt_patch_$(BITS).o	:= y
++
++# If instrumentation of this dir is enabled, boot hangs during first second.
++# Probably could be more selective here, but note that files related to irqs,
++# boot, dumpstack/stacktrace, etc are either non-interesting or can lead to
++# non-deterministic coverage.
++KCOV_INSTRUMENT		:= n
++
++CFLAGS_irq.o := -I$(src)/../include/asm/trace
++
++obj-y			:= process_$(BITS).o signal.o
++obj-$(CONFIG_COMPAT)	+= signal_compat.o
++obj-y			+= traps.o idt.o irq.o irq_$(BITS).o dumpstack_$(BITS).o
++obj-y			+= time.o ioport.o dumpstack.o nmi.o
++obj-$(CONFIG_MODIFY_LDT_SYSCALL)	+= ldt.o
++obj-y			+= setup.o x86_init.o i8259.o irqinit.o jump_label.o
++obj-$(CONFIG_IRQ_WORK)  += irq_work.o
++obj-y			+= probe_roms.o
++obj-$(CONFIG_X86_64)	+= sys_x86_64.o
++obj-$(CONFIG_X86_ESPFIX64)	+= espfix_64.o
++obj-$(CONFIG_SYSFS)	+= ksysfs.o
++obj-y			+= bootflag.o e820.o
++obj-y			+= pci-dma.o quirks.o topology.o kdebugfs.o
++obj-y			+= alternative.o i8253.o pci-nommu.o hw_breakpoint.o
++obj-y			+= tsc.o tsc_msr.o io_delay.o rtc.o
++obj-y			+= pci-iommu_table.o
++obj-y			+= resource.o
++obj-y			+= irqflags.o
++
++obj-y				+= process.o
++obj-y				+= fpu/
++obj-y				+= ptrace.o
++obj-$(CONFIG_X86_32)		+= tls.o
++obj-$(CONFIG_IA32_EMULATION)	+= tls.o
++obj-y				+= step.o
++obj-$(CONFIG_INTEL_TXT)		+= tboot.o
++obj-$(CONFIG_ISA_DMA_API)	+= i8237.o
++obj-$(CONFIG_STACKTRACE)	+= stacktrace.o
++obj-y				+= cpu/
++obj-y				+= acpi/
++obj-y				+= reboot.o
++obj-$(CONFIG_X86_MSR)		+= msr.o
++obj-$(CONFIG_X86_CPUID)		+= cpuid.o
++obj-$(CONFIG_PCI)		+= early-quirks.o
++apm-y				:= apm_32.o
++obj-$(CONFIG_APM)		+= apm.o
++obj-$(CONFIG_SMP)		+= smp.o
++obj-$(CONFIG_SMP)		+= smpboot.o
++obj-$(CONFIG_X86_TSC)		+= tsc_sync.o
++obj-$(CONFIG_SMP)		+= setup_percpu.o
++obj-$(CONFIG_X86_MPPARSE)	+= mpparse.o
++obj-y				+= apic/
++obj-$(CONFIG_X86_REBOOTFIXUPS)	+= reboot_fixups_32.o
++obj-$(CONFIG_DYNAMIC_FTRACE)	+= ftrace.o
++obj-$(CONFIG_LIVEPATCH)	+= livepatch.o
++obj-$(CONFIG_FUNCTION_TRACER)	+= ftrace_$(BITS).o
++obj-$(CONFIG_FUNCTION_GRAPH_TRACER) += ftrace.o
++obj-$(CONFIG_FTRACE_SYSCALLS)	+= ftrace.o
++obj-$(CONFIG_X86_TSC)		+= trace_clock.o
++obj-$(CONFIG_KEXEC_CORE)	+= machine_kexec_$(BITS).o
++obj-$(CONFIG_KEXEC_CORE)	+= relocate_kernel_$(BITS).o crash.o
++obj-$(CONFIG_KEXEC_FILE)	+= kexec-bzimage64.o
++obj-$(CONFIG_CRASH_DUMP)	+= crash_dump_$(BITS).o
++obj-y				+= kprobes/
++obj-$(CONFIG_MODULES)		+= module.o
++obj-$(CONFIG_DOUBLEFAULT)	+= doublefault.o
++obj-$(CONFIG_KGDB)		+= kgdb.o
++obj-$(CONFIG_VM86)		+= vm86_32.o
++obj-$(CONFIG_EARLY_PRINTK)	+= early_printk.o
++
++obj-$(CONFIG_HPET_TIMER) 	+= hpet.o
++obj-$(CONFIG_APB_TIMER)		+= apb_timer.o
++
++obj-$(CONFIG_AMD_NB)		+= amd_nb.o
++obj-$(CONFIG_DEBUG_NMI_SELFTEST) += nmi_selftest.o
++
++obj-$(CONFIG_KVM_GUEST)		+= kvm.o kvmclock.o
++obj-$(CONFIG_PARAVIRT)		+= paravirt.o paravirt_patch_$(BITS).o
++obj-$(CONFIG_PARAVIRT_SPINLOCKS)+= paravirt-spinlocks.o
++obj-$(CONFIG_PARAVIRT_CLOCK)	+= pvclock.o
++obj-$(CONFIG_X86_PMEM_LEGACY_DEVICE) += pmem.o
++
++obj-$(CONFIG_EISA)		+= eisa.o
++obj-$(CONFIG_PCSPKR_PLATFORM)	+= pcspeaker.o
++
++obj-$(CONFIG_X86_CHECK_BIOS_CORRUPTION) += check.o
++
++obj-$(CONFIG_SWIOTLB)			+= pci-swiotlb.o
++obj-$(CONFIG_OF)			+= devicetree.o
++obj-$(CONFIG_UPROBES)			+= uprobes.o
++obj-y					+= sysfb.o
++obj-$(CONFIG_X86_SYSFB)			+= sysfb_simplefb.o
++obj-$(CONFIG_EFI)			+= sysfb_efi.o
++
++obj-$(CONFIG_PERF_EVENTS)		+= perf_regs.o
++obj-$(CONFIG_TRACING)			+= tracepoint.o
++obj-$(CONFIG_SCHED_MC_PRIO)		+= itmt.o
++
++obj-$(CONFIG_UNWINDER_ORC)		+= unwind_orc.o
++obj-$(CONFIG_UNWINDER_FRAME_POINTER)	+= unwind_frame.o
++obj-$(CONFIG_UNWINDER_GUESS)		+= unwind_guess.o
++
++###
++# 64 bit specific files
++ifeq ($(CONFIG_X86_64),y)
++	obj-$(CONFIG_AUDIT)		+= audit_64.o
++
++	obj-$(CONFIG_GART_IOMMU)	+= amd_gart_64.o aperture_64.o
++	obj-$(CONFIG_CALGARY_IOMMU)	+= pci-calgary_64.o tce_64.o
++
++	obj-$(CONFIG_PCI_MMCONFIG)	+= mmconf-fam10h_64.o
++	obj-y				+= vsmp_64.o
++endif
+diff -uprN 4.14.79/arch/x86/kernel/process_server.c 4.14.79_popcorn/arch/x86/kernel/process_server.c
+--- 4.14.79/arch/x86/kernel/process_server.c	1969-12-31 19:00:00.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/kernel/process_server.c	2020-05-24 22:41:27.746914830 -0400
+@@ -0,0 +1,266 @@
++/*
++ * File:
++ * 	process_server.c
++ *
++ * Description:
++ * 	this file implements the x86 architecture specific
++ *  helper functionality of the process server
++ *
++ * Created on:
++ * 	Sep 19, 2014
++ *
++ * Author:
++ * 	Sharath Kumar Bhat, SSRG, VirginiaTech
++ *
++ */
++
++/* File includes */
++#include <linux/sched.h>
++#include <linux/kdebug.h>
++#include <linux/ptrace.h>
++#include <asm/uaccess.h>
++#include <asm/prctl.h>
++#include <asm/proto.h>
++#include <asm/desc.h>
++#include <asm/fpu/internal.h>
++
++#include <popcorn/types.h>
++#include <popcorn/regset.h>
++
++/*
++ * Function:
++ *		save_thread_info
++ *
++ * Description:
++ *		this function saves the architecture specific info of the task
++ *		to the struct struct field_arch structure passed
++ *
++ * Input:
++ *	regs,	pointer to the pt_regs field of the task
++ *
++ * Output:
++ *	arch,	pointer to the struct field_arch structure type where the
++ *			architecture specific information of the task has to be
++ *			saved
++ *
++ * Return value:
++ *	on success, returns 0
++ * 	on failure, returns negative integer
++ */
++int save_thread_info(struct field_arch *arch)
++{
++	unsigned short fsindex, gsindex;
++	unsigned long ds, es, fs, gs;
++	int cpu;
++
++	BUG_ON(!arch);
++
++	cpu = get_cpu();
++
++	/*
++	 * Segments
++	 * CS and SS are set during the user/kernel mode switch.
++	 * Thus, nothing to do with them.
++	 */
++
++	ds = current->thread.ds;
++	es = current->thread.es;
++
++	savesegment(fs, fsindex);
++	if (fsindex) {
++		//fs = get_desc_base(current->thread.tls_array + 0);
++		fs = current->thread.fsbase;
++		//directly get the fs base
++	} else {
++		rdmsrl(MSR_FS_BASE, fs);
++	}
++
++	savesegment(gs, gsindex);
++	if (gsindex) {
++		//gs = get_desc_base(current->thread.tls_array + GS_TLS);
++		gs = current->thread.gsbase;
++		//directly get the gs base
++	} else {
++		rdmsrl(MSR_KERNEL_GS_BASE, gs);
++	}
++
++	WARN_ON(ds);
++	WARN_ON(es);
++	WARN_ON(gs);
++	arch->tls = fs;
++	arch->fpu_active = !!current->thread.fpu.initialized; //rename
++
++	put_cpu();
++
++	/*
++	PSPRINTK("%s [%d] tls %lx\n", __func__, current->pid, arch->tls);
++	PSPRINTK("%s [%d] fpu %sactive\n", __func__, current->pid,
++			arch->fpu_active ? "" : "in");
++	*/
++
++	return 0;
++}
++
++
++/*
++ * Function:
++ *		restore_thread_info
++ *
++ * Description:
++ *		this function restores the architecture specific info of the
++ *		task from the struct field_arch structure passed
++ *
++ * Input:
++ * 	arch,	pointer to the struct field_arch structure type from which the
++ *			architecture specific information of the task has to be
++ *			restored
++ *
++ *	restore_segments,
++ *			restore segmentations as well if segs is true. Unless, do
++ *			not restore the segmentation units (for back migration)
++ *
++ * Output:
++ *	none
++ *
++ * Return value:
++ *	on success, returns 0
++ * 	on failure, returns negative integer
++ */
++int restore_thread_info(struct field_arch *arch, bool restore_segments)
++{
++	struct pt_regs *regs = current_pt_regs();
++	struct regset_x86_64 *regset = &arch->regs_x86;
++	int cpu;
++
++	cpu = get_cpu();
++
++	regs->r15 = regset->r15;
++	regs->r14 = regset->r14;
++	regs->r13 = regset->r13;
++	regs->r12 = regset->r12;
++	regs->bp = regset->rbp;
++	regs->bx = regset->rbx;
++
++	regs->r11 = regset->r11;
++	regs->r10 = regset->r10;
++	regs->r9 = regset->r9;
++	regs->r8 = regset->r8;
++	regs->ax = regset->rax;
++	regs->cx = regset->rcx;
++	regs->dx = regset->rdx;
++	regs->si = regset->rsi;
++	regs->di = regset->rdi;
++
++	regs->ip = regset->rip;
++	regs->sp = regset->rsp;
++	regs->flags = regset->rflags;
++
++	if (restore_segments) {
++		regs->cs = __USER_CS;
++		regs->ss = __USER_DS;
++
++		/*
++		current->thread.ds = regset->ds;
++		current->thread.es = regset->es;
++		*/
++
++		if (arch->tls) {
++			do_arch_prctl_64(current, ARCH_SET_FS, arch->tls);
++			//function rename
++		}
++		/*
++		if (arch->thread_gs) {
++			do_arch_prctl(current, ARCH_SET_GS, arch->thread_gs);
++		}
++		*/
++		if (arch->fpu_active) {
++			fpu__initialize(&current->thread.fpu);
++			//function rename
++		}
++	}
++
++	put_cpu();
++
++#ifdef CONFIG_POPCORN_DEBUG_VERBOSE
++	PSPRINTK("%s [%d] ip %lx\n", __func__, current->pid,
++			regs->ip);
++	PSPRINTK("%s [%d] sp %lx bp %lx\n", __func__, current->pid,
++			regs->sp, regs->bp);
++	PSPRINTK("%s [%d] fs %lx fpu %sactive\n", __func__, current->pid,
++			arch->tls, arch->fpu_active ? "" : "in");
++#endif
++	return 0;
++}
++
++#include <asm/stacktrace.h>
++noinline_for_stack void update_frame_pointer(void)
++{
++	unsigned long *rbp;
++	//get_bp(rbp); /* update_frame_pointer */
++	asm("movq %%rbp, %0" : "=r" (rbp) :);
++	/* User rbp is at one stack frames below */
++	*rbp = current_pt_regs()->bp;	/* sched_migrate */
++}
++
++
++/*
++ * Function:
++ *		dump_processor_regs
++ *
++ * Description:
++ *		this function prints the architecture specific registers specified
++ *		in the input argument
++ *
++ * Input:
++ * 	task,	pointer to the architecture specific registers
++ *
++ * Output:
++ * 	none
++ *
++ * Return value:
++ *	void
++ *
++ * Why don't use show_all() for x86?
++ */
++void dump_processor_regs(struct pt_regs* regs)
++{
++	unsigned long fs, gs;
++	unsigned long fsindex, gsindex;
++
++	dump_stack();
++	if (!regs) return;
++	printk(KERN_ALERT"DUMP REGS %s\n", __func__);
++
++	if (NULL != regs) {
++		printk(KERN_ALERT"r15{%lx}\n",regs->r15);
++		printk(KERN_ALERT"r14{%lx}\n",regs->r14);
++		printk(KERN_ALERT"r13{%lx}\n",regs->r13);
++		printk(KERN_ALERT"r12{%lx}\n",regs->r12);
++		printk(KERN_ALERT"r11{%lx}\n",regs->r11);
++		printk(KERN_ALERT"r10{%lx}\n",regs->r10);
++		printk(KERN_ALERT"r9{%lx}\n",regs->r9);
++		printk(KERN_ALERT"r8{%lx}\n",regs->r8);
++		printk(KERN_ALERT"bp{%lx}\n",regs->bp);
++		printk(KERN_ALERT"bx{%lx}\n",regs->bx);
++		printk(KERN_ALERT"ax{%lx}\n",regs->ax);
++		printk(KERN_ALERT"cx{%lx}\n",regs->cx);
++		printk(KERN_ALERT"dx{%lx}\n",regs->dx);
++		printk(KERN_ALERT"di{%lx}\n",regs->di);
++		printk(KERN_ALERT"orig_ax{%lx}\n",regs->orig_ax);
++		printk(KERN_ALERT"ip{%lx}\n",regs->ip);
++		printk(KERN_ALERT"cs{%lx}\n",regs->cs);
++		printk(KERN_ALERT"flags{%lx}\n",regs->flags);
++		printk(KERN_ALERT"sp{%lx}\n",regs->sp);
++		printk(KERN_ALERT"ss{%lx}\n",regs->ss);
++	}
++	rdmsrl(MSR_FS_BASE, fs);
++	rdmsrl(MSR_GS_BASE, gs);
++	printk(KERN_ALERT"fs{%lx} - %lx content %lx\n",fs, current->thread.fsbase, fs ? * (unsigned long*)fs : 0x1234567l);
++	printk(KERN_ALERT"gs{%lx} - %lx content %lx\n",gs, current->thread.gsbase, fs ? * (unsigned long*)gs : 0x1234567l);
++
++	savesegment(fs, fsindex);
++	savesegment(gs, gsindex);
++	printk(KERN_ALERT"fsindex{%lx} - %x\n",fsindex, current->thread.fsindex);
++	printk(KERN_ALERT"gsindex{%lx} - %x\n",gsindex, current->thread.gsindex);
++	printk(KERN_ALERT"REGS DUMP COMPLETE\n");
++}
+diff -uprN 4.14.79/arch/x86/mm/fault.c 4.14.79_popcorn/arch/x86/mm/fault.c
+--- 4.14.79/arch/x86/mm/fault.c	2018-11-04 08:52:51.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/mm/fault.c	2020-05-24 22:41:27.762914781 -0400
+@@ -29,6 +29,11 @@
+ #define CREATE_TRACE_POINTS
+ #include <asm/trace/exceptions.h>
+ 
++#ifdef CONFIG_POPCORN
++#include <popcorn/types.h>
++#include <popcorn/vma_server.h>
++#endif
++
+ /*
+  * Returns 0 if mmiotrace is disabled, or if the fault is not
+  * handled by mmiotrace:
+@@ -1369,6 +1374,19 @@ retry:
+ 	}
+ 
+ 	vma = find_vma(mm, address);
++#ifdef CONFIG_POPCORN
++	/* vma worker should not fault */
++	BUG_ON(tsk->is_worker);
++
++	if (distributed_remote_process(tsk)) {
++		if (!vma || vma->vm_start > address) {
++			if (vma_server_fetch_vma(tsk, address) == 0) {
++				/* Replace with updated VMA */
++				vma = find_vma(mm, address);
++			}
++		}
++	}
++#endif
+ 	if (unlikely(!vma)) {
+ 		bad_area(regs, error_code, address);
+ 		return;
+diff -uprN 4.14.79/arch/x86/mm/fault.c.orig 4.14.79_popcorn/arch/x86/mm/fault.c.orig
+--- 4.14.79/arch/x86/mm/fault.c.orig	1969-12-31 19:00:00.000000000 -0500
++++ 4.14.79_popcorn/arch/x86/mm/fault.c.orig	2020-05-24 22:41:27.762914781 -0400
+@@ -0,0 +1,1503 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ *  Copyright (C) 1995  Linus Torvalds
++ *  Copyright (C) 2001, 2002 Andi Kleen, SuSE Labs.
++ *  Copyright (C) 2008-2009, Red Hat Inc., Ingo Molnar
++ */
++#include <linux/sched.h>		/* test_thread_flag(), ...	*/
++#include <linux/sched/task_stack.h>	/* task_stack_*(), ...		*/
++#include <linux/kdebug.h>		/* oops_begin/end, ...		*/
++#include <linux/extable.h>		/* search_exception_tables	*/
++#include <linux/bootmem.h>		/* max_low_pfn			*/
++#include <linux/kprobes.h>		/* NOKPROBE_SYMBOL, ...		*/
++#include <linux/mmiotrace.h>		/* kmmio_handler, ...		*/
++#include <linux/perf_event.h>		/* perf_sw_event		*/
++#include <linux/hugetlb.h>		/* hstate_index_to_shift	*/
++#include <linux/prefetch.h>		/* prefetchw			*/
++#include <linux/context_tracking.h>	/* exception_enter(), ...	*/
++#include <linux/uaccess.h>		/* faulthandler_disabled()	*/
++
++#include <asm/cpufeature.h>		/* boot_cpu_has, ...		*/
++#include <asm/traps.h>			/* dotraplinkage, ...		*/
++#include <asm/pgalloc.h>		/* pgd_*(), ...			*/
++#include <asm/fixmap.h>			/* VSYSCALL_ADDR		*/
++#include <asm/vsyscall.h>		/* emulate_vsyscall		*/
++#include <asm/vm86.h>			/* struct vm86			*/
++#include <asm/mmu_context.h>		/* vma_pkey()			*/
++#include <asm/sections.h>
++
++#define CREATE_TRACE_POINTS
++#include <asm/trace/exceptions.h>
++
++/*
++ * Returns 0 if mmiotrace is disabled, or if the fault is not
++ * handled by mmiotrace:
++ */
++static nokprobe_inline int
++kmmio_fault(struct pt_regs *regs, unsigned long addr)
++{
++	if (unlikely(is_kmmio_active()))
++		if (kmmio_handler(regs, addr) == 1)
++			return -1;
++	return 0;
++}
++
++static nokprobe_inline int kprobes_fault(struct pt_regs *regs)
++{
++	int ret = 0;
++
++	/* kprobe_running() needs smp_processor_id() */
++	if (kprobes_built_in() && !user_mode(regs)) {
++		preempt_disable();
++		if (kprobe_running() && kprobe_fault_handler(regs, 14))
++			ret = 1;
++		preempt_enable();
++	}
++
++	return ret;
++}
++
++/*
++ * Prefetch quirks:
++ *
++ * 32-bit mode:
++ *
++ *   Sometimes AMD Athlon/Opteron CPUs report invalid exceptions on prefetch.
++ *   Check that here and ignore it.
++ *
++ * 64-bit mode:
++ *
++ *   Sometimes the CPU reports invalid exceptions on prefetch.
++ *   Check that here and ignore it.
++ *
++ * Opcode checker based on code by Richard Brunner.
++ */
++static inline int
++check_prefetch_opcode(struct pt_regs *regs, unsigned char *instr,
++		      unsigned char opcode, int *prefetch)
++{
++	unsigned char instr_hi = opcode & 0xf0;
++	unsigned char instr_lo = opcode & 0x0f;
++
++	switch (instr_hi) {
++	case 0x20:
++	case 0x30:
++		/*
++		 * Values 0x26,0x2E,0x36,0x3E are valid x86 prefixes.
++		 * In X86_64 long mode, the CPU will signal invalid
++		 * opcode if some of these prefixes are present so
++		 * X86_64 will never get here anyway
++		 */
++		return ((instr_lo & 7) == 0x6);
++#ifdef CONFIG_X86_64
++	case 0x40:
++		/*
++		 * In AMD64 long mode 0x40..0x4F are valid REX prefixes
++		 * Need to figure out under what instruction mode the
++		 * instruction was issued. Could check the LDT for lm,
++		 * but for now it's good enough to assume that long
++		 * mode only uses well known segments or kernel.
++		 */
++		return (!user_mode(regs) || user_64bit_mode(regs));
++#endif
++	case 0x60:
++		/* 0x64 thru 0x67 are valid prefixes in all modes. */
++		return (instr_lo & 0xC) == 0x4;
++	case 0xF0:
++		/* 0xF0, 0xF2, 0xF3 are valid prefixes in all modes. */
++		return !instr_lo || (instr_lo>>1) == 1;
++	case 0x00:
++		/* Prefetch instruction is 0x0F0D or 0x0F18 */
++		if (probe_kernel_address(instr, opcode))
++			return 0;
++
++		*prefetch = (instr_lo == 0xF) &&
++			(opcode == 0x0D || opcode == 0x18);
++		return 0;
++	default:
++		return 0;
++	}
++}
++
++static int
++is_prefetch(struct pt_regs *regs, unsigned long error_code, unsigned long addr)
++{
++	unsigned char *max_instr;
++	unsigned char *instr;
++	int prefetch = 0;
++
++	/*
++	 * If it was a exec (instruction fetch) fault on NX page, then
++	 * do not ignore the fault:
++	 */
++	if (error_code & X86_PF_INSTR)
++		return 0;
++
++	instr = (void *)convert_ip_to_linear(current, regs);
++	max_instr = instr + 15;
++
++	if (user_mode(regs) && instr >= (unsigned char *)TASK_SIZE_MAX)
++		return 0;
++
++	while (instr < max_instr) {
++		unsigned char opcode;
++
++		if (probe_kernel_address(instr, opcode))
++			break;
++
++		instr++;
++
++		if (!check_prefetch_opcode(regs, instr, opcode, &prefetch))
++			break;
++	}
++	return prefetch;
++}
++
++/*
++ * A protection key fault means that the PKRU value did not allow
++ * access to some PTE.  Userspace can figure out what PKRU was
++ * from the XSAVE state, and this function fills out a field in
++ * siginfo so userspace can discover which protection key was set
++ * on the PTE.
++ *
++ * If we get here, we know that the hardware signaled a X86_PF_PK
++ * fault and that there was a VMA once we got in the fault
++ * handler.  It does *not* guarantee that the VMA we find here
++ * was the one that we faulted on.
++ *
++ * 1. T1   : mprotect_key(foo, PAGE_SIZE, pkey=4);
++ * 2. T1   : set PKRU to deny access to pkey=4, touches page
++ * 3. T1   : faults...
++ * 4.    T2: mprotect_key(foo, PAGE_SIZE, pkey=5);
++ * 5. T1   : enters fault handler, takes mmap_sem, etc...
++ * 6. T1   : reaches here, sees vma_pkey(vma)=5, when we really
++ *	     faulted on a pte with its pkey=4.
++ */
++static void fill_sig_info_pkey(int si_signo, int si_code, siginfo_t *info,
++		u32 *pkey)
++{
++	/* This is effectively an #ifdef */
++	if (!boot_cpu_has(X86_FEATURE_OSPKE))
++		return;
++
++	/* Fault not from Protection Keys: nothing to do */
++	if ((si_code != SEGV_PKUERR) || (si_signo != SIGSEGV))
++		return;
++	/*
++	 * force_sig_info_fault() is called from a number of
++	 * contexts, some of which have a VMA and some of which
++	 * do not.  The X86_PF_PK handing happens after we have a
++	 * valid VMA, so we should never reach this without a
++	 * valid VMA.
++	 */
++	if (!pkey) {
++		WARN_ONCE(1, "PKU fault with no VMA passed in");
++		info->si_pkey = 0;
++		return;
++	}
++	/*
++	 * si_pkey should be thought of as a strong hint, but not
++	 * absolutely guranteed to be 100% accurate because of
++	 * the race explained above.
++	 */
++	info->si_pkey = *pkey;
++}
++
++static void
++force_sig_info_fault(int si_signo, int si_code, unsigned long address,
++		     struct task_struct *tsk, u32 *pkey, int fault)
++{
++	unsigned lsb = 0;
++	siginfo_t info;
++
++	info.si_signo	= si_signo;
++	info.si_errno	= 0;
++	info.si_code	= si_code;
++	info.si_addr	= (void __user *)address;
++	if (fault & VM_FAULT_HWPOISON_LARGE)
++		lsb = hstate_index_to_shift(VM_FAULT_GET_HINDEX(fault)); 
++	if (fault & VM_FAULT_HWPOISON)
++		lsb = PAGE_SHIFT;
++	info.si_addr_lsb = lsb;
++
++	fill_sig_info_pkey(si_signo, si_code, &info, pkey);
++
++	force_sig_info(si_signo, &info, tsk);
++}
++
++DEFINE_SPINLOCK(pgd_lock);
++LIST_HEAD(pgd_list);
++
++#ifdef CONFIG_X86_32
++static inline pmd_t *vmalloc_sync_one(pgd_t *pgd, unsigned long address)
++{
++	unsigned index = pgd_index(address);
++	pgd_t *pgd_k;
++	p4d_t *p4d, *p4d_k;
++	pud_t *pud, *pud_k;
++	pmd_t *pmd, *pmd_k;
++
++	pgd += index;
++	pgd_k = init_mm.pgd + index;
++
++	if (!pgd_present(*pgd_k))
++		return NULL;
++
++	/*
++	 * set_pgd(pgd, *pgd_k); here would be useless on PAE
++	 * and redundant with the set_pmd() on non-PAE. As would
++	 * set_p4d/set_pud.
++	 */
++	p4d = p4d_offset(pgd, address);
++	p4d_k = p4d_offset(pgd_k, address);
++	if (!p4d_present(*p4d_k))
++		return NULL;
++
++	pud = pud_offset(p4d, address);
++	pud_k = pud_offset(p4d_k, address);
++	if (!pud_present(*pud_k))
++		return NULL;
++
++	pmd = pmd_offset(pud, address);
++	pmd_k = pmd_offset(pud_k, address);
++	if (!pmd_present(*pmd_k))
++		return NULL;
++
++	if (!pmd_present(*pmd))
++		set_pmd(pmd, *pmd_k);
++	else
++		BUG_ON(pmd_page(*pmd) != pmd_page(*pmd_k));
++
++	return pmd_k;
++}
++
++void vmalloc_sync_all(void)
++{
++	unsigned long address;
++
++	if (SHARED_KERNEL_PMD)
++		return;
++
++	for (address = VMALLOC_START & PMD_MASK;
++	     address >= TASK_SIZE_MAX && address < FIXADDR_TOP;
++	     address += PMD_SIZE) {
++		struct page *page;
++
++		spin_lock(&pgd_lock);
++		list_for_each_entry(page, &pgd_list, lru) {
++			spinlock_t *pgt_lock;
++			pmd_t *ret;
++
++			/* the pgt_lock only for Xen */
++			pgt_lock = &pgd_page_get_mm(page)->page_table_lock;
++
++			spin_lock(pgt_lock);
++			ret = vmalloc_sync_one(page_address(page), address);
++			spin_unlock(pgt_lock);
++
++			if (!ret)
++				break;
++		}
++		spin_unlock(&pgd_lock);
++	}
++}
++
++/*
++ * 32-bit:
++ *
++ *   Handle a fault on the vmalloc or module mapping area
++ */
++static noinline int vmalloc_fault(unsigned long address)
++{
++	unsigned long pgd_paddr;
++	pmd_t *pmd_k;
++	pte_t *pte_k;
++
++	/* Make sure we are in vmalloc area: */
++	if (!(address >= VMALLOC_START && address < VMALLOC_END))
++		return -1;
++
++	/*
++	 * Synchronize this task's top level page-table
++	 * with the 'reference' page table.
++	 *
++	 * Do _not_ use "current" here. We might be inside
++	 * an interrupt in the middle of a task switch..
++	 */
++	pgd_paddr = read_cr3_pa();
++	pmd_k = vmalloc_sync_one(__va(pgd_paddr), address);
++	if (!pmd_k)
++		return -1;
++
++	if (pmd_large(*pmd_k))
++		return 0;
++
++	pte_k = pte_offset_kernel(pmd_k, address);
++	if (!pte_present(*pte_k))
++		return -1;
++
++	return 0;
++}
++NOKPROBE_SYMBOL(vmalloc_fault);
++
++/*
++ * Did it hit the DOS screen memory VA from vm86 mode?
++ */
++static inline void
++check_v8086_mode(struct pt_regs *regs, unsigned long address,
++		 struct task_struct *tsk)
++{
++#ifdef CONFIG_VM86
++	unsigned long bit;
++
++	if (!v8086_mode(regs) || !tsk->thread.vm86)
++		return;
++
++	bit = (address - 0xA0000) >> PAGE_SHIFT;
++	if (bit < 32)
++		tsk->thread.vm86->screen_bitmap |= 1 << bit;
++#endif
++}
++
++static bool low_pfn(unsigned long pfn)
++{
++	return pfn < max_low_pfn;
++}
++
++static void dump_pagetable(unsigned long address)
++{
++	pgd_t *base = __va(read_cr3_pa());
++	pgd_t *pgd = &base[pgd_index(address)];
++	p4d_t *p4d;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *pte;
++
++#ifdef CONFIG_X86_PAE
++	pr_info("*pdpt = %016Lx ", pgd_val(*pgd));
++	if (!low_pfn(pgd_val(*pgd) >> PAGE_SHIFT) || !pgd_present(*pgd))
++		goto out;
++#define pr_pde pr_cont
++#else
++#define pr_pde pr_info
++#endif
++	p4d = p4d_offset(pgd, address);
++	pud = pud_offset(p4d, address);
++	pmd = pmd_offset(pud, address);
++	pr_pde("*pde = %0*Lx ", sizeof(*pmd) * 2, (u64)pmd_val(*pmd));
++#undef pr_pde
++
++	/*
++	 * We must not directly access the pte in the highpte
++	 * case if the page table is located in highmem.
++	 * And let's rather not kmap-atomic the pte, just in case
++	 * it's allocated already:
++	 */
++	if (!low_pfn(pmd_pfn(*pmd)) || !pmd_present(*pmd) || pmd_large(*pmd))
++		goto out;
++
++	pte = pte_offset_kernel(pmd, address);
++	pr_cont("*pte = %0*Lx ", sizeof(*pte) * 2, (u64)pte_val(*pte));
++out:
++	pr_cont("\n");
++}
++
++#else /* CONFIG_X86_64: */
++
++void vmalloc_sync_all(void)
++{
++	sync_global_pgds(VMALLOC_START & PGDIR_MASK, VMALLOC_END);
++}
++
++/*
++ * 64-bit:
++ *
++ *   Handle a fault on the vmalloc area
++ */
++static noinline int vmalloc_fault(unsigned long address)
++{
++	pgd_t *pgd, *pgd_ref;
++	p4d_t *p4d, *p4d_ref;
++	pud_t *pud, *pud_ref;
++	pmd_t *pmd, *pmd_ref;
++	pte_t *pte, *pte_ref;
++
++	/* Make sure we are in vmalloc area: */
++	if (!(address >= VMALLOC_START && address < VMALLOC_END))
++		return -1;
++
++	WARN_ON_ONCE(in_nmi());
++
++	/*
++	 * Copy kernel mappings over when needed. This can also
++	 * happen within a race in page table update. In the later
++	 * case just flush:
++	 */
++	pgd = (pgd_t *)__va(read_cr3_pa()) + pgd_index(address);
++	pgd_ref = pgd_offset_k(address);
++	if (pgd_none(*pgd_ref))
++		return -1;
++
++	if (pgd_none(*pgd)) {
++		set_pgd(pgd, *pgd_ref);
++		arch_flush_lazy_mmu_mode();
++	} else if (CONFIG_PGTABLE_LEVELS > 4) {
++		/*
++		 * With folded p4d, pgd_none() is always false, so the pgd may
++		 * point to an empty page table entry and pgd_page_vaddr()
++		 * will return garbage.
++		 *
++		 * We will do the correct sanity check on the p4d level.
++		 */
++		BUG_ON(pgd_page_vaddr(*pgd) != pgd_page_vaddr(*pgd_ref));
++	}
++
++	/* With 4-level paging, copying happens on the p4d level. */
++	p4d = p4d_offset(pgd, address);
++	p4d_ref = p4d_offset(pgd_ref, address);
++	if (p4d_none(*p4d_ref))
++		return -1;
++
++	if (p4d_none(*p4d)) {
++		set_p4d(p4d, *p4d_ref);
++		arch_flush_lazy_mmu_mode();
++	} else {
++		BUG_ON(p4d_pfn(*p4d) != p4d_pfn(*p4d_ref));
++	}
++
++	/*
++	 * Below here mismatches are bugs because these lower tables
++	 * are shared:
++	 */
++
++	pud = pud_offset(p4d, address);
++	pud_ref = pud_offset(p4d_ref, address);
++	if (pud_none(*pud_ref))
++		return -1;
++
++	if (pud_none(*pud) || pud_pfn(*pud) != pud_pfn(*pud_ref))
++		BUG();
++
++	if (pud_large(*pud))
++		return 0;
++
++	pmd = pmd_offset(pud, address);
++	pmd_ref = pmd_offset(pud_ref, address);
++	if (pmd_none(*pmd_ref))
++		return -1;
++
++	if (pmd_none(*pmd) || pmd_pfn(*pmd) != pmd_pfn(*pmd_ref))
++		BUG();
++
++	if (pmd_large(*pmd))
++		return 0;
++
++	pte_ref = pte_offset_kernel(pmd_ref, address);
++	if (!pte_present(*pte_ref))
++		return -1;
++
++	pte = pte_offset_kernel(pmd, address);
++
++	/*
++	 * Don't use pte_page here, because the mappings can point
++	 * outside mem_map, and the NUMA hash lookup cannot handle
++	 * that:
++	 */
++	if (!pte_present(*pte) || pte_pfn(*pte) != pte_pfn(*pte_ref))
++		BUG();
++
++	return 0;
++}
++NOKPROBE_SYMBOL(vmalloc_fault);
++
++#ifdef CONFIG_CPU_SUP_AMD
++static const char errata93_warning[] =
++KERN_ERR 
++"******* Your BIOS seems to not contain a fix for K8 errata #93\n"
++"******* Working around it, but it may cause SEGVs or burn power.\n"
++"******* Please consider a BIOS update.\n"
++"******* Disabling USB legacy in the BIOS may also help.\n";
++#endif
++
++/*
++ * No vm86 mode in 64-bit mode:
++ */
++static inline void
++check_v8086_mode(struct pt_regs *regs, unsigned long address,
++		 struct task_struct *tsk)
++{
++}
++
++static int bad_address(void *p)
++{
++	unsigned long dummy;
++
++	return probe_kernel_address((unsigned long *)p, dummy);
++}
++
++static void dump_pagetable(unsigned long address)
++{
++	pgd_t *base = __va(read_cr3_pa());
++	pgd_t *pgd = base + pgd_index(address);
++	p4d_t *p4d;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *pte;
++
++	if (bad_address(pgd))
++		goto bad;
++
++	pr_info("PGD %lx ", pgd_val(*pgd));
++
++	if (!pgd_present(*pgd))
++		goto out;
++
++	p4d = p4d_offset(pgd, address);
++	if (bad_address(p4d))
++		goto bad;
++
++	pr_cont("P4D %lx ", p4d_val(*p4d));
++	if (!p4d_present(*p4d) || p4d_large(*p4d))
++		goto out;
++
++	pud = pud_offset(p4d, address);
++	if (bad_address(pud))
++		goto bad;
++
++	pr_cont("PUD %lx ", pud_val(*pud));
++	if (!pud_present(*pud) || pud_large(*pud))
++		goto out;
++
++	pmd = pmd_offset(pud, address);
++	if (bad_address(pmd))
++		goto bad;
++
++	pr_cont("PMD %lx ", pmd_val(*pmd));
++	if (!pmd_present(*pmd) || pmd_large(*pmd))
++		goto out;
++
++	pte = pte_offset_kernel(pmd, address);
++	if (bad_address(pte))
++		goto bad;
++
++	pr_cont("PTE %lx", pte_val(*pte));
++out:
++	pr_cont("\n");
++	return;
++bad:
++	pr_info("BAD\n");
++}
++
++#endif /* CONFIG_X86_64 */
++
++/*
++ * Workaround for K8 erratum #93 & buggy BIOS.
++ *
++ * BIOS SMM functions are required to use a specific workaround
++ * to avoid corruption of the 64bit RIP register on C stepping K8.
++ *
++ * A lot of BIOS that didn't get tested properly miss this.
++ *
++ * The OS sees this as a page fault with the upper 32bits of RIP cleared.
++ * Try to work around it here.
++ *
++ * Note we only handle faults in kernel here.
++ * Does nothing on 32-bit.
++ */
++static int is_errata93(struct pt_regs *regs, unsigned long address)
++{
++#if defined(CONFIG_X86_64) && defined(CONFIG_CPU_SUP_AMD)
++	if (boot_cpu_data.x86_vendor != X86_VENDOR_AMD
++	    || boot_cpu_data.x86 != 0xf)
++		return 0;
++
++	if (address != regs->ip)
++		return 0;
++
++	if ((address >> 32) != 0)
++		return 0;
++
++	address |= 0xffffffffUL << 32;
++	if ((address >= (u64)_stext && address <= (u64)_etext) ||
++	    (address >= MODULES_VADDR && address <= MODULES_END)) {
++		printk_once(errata93_warning);
++		regs->ip = address;
++		return 1;
++	}
++#endif
++	return 0;
++}
++
++/*
++ * Work around K8 erratum #100 K8 in compat mode occasionally jumps
++ * to illegal addresses >4GB.
++ *
++ * We catch this in the page fault handler because these addresses
++ * are not reachable. Just detect this case and return.  Any code
++ * segment in LDT is compatibility mode.
++ */
++static int is_errata100(struct pt_regs *regs, unsigned long address)
++{
++#ifdef CONFIG_X86_64
++	if ((regs->cs == __USER32_CS || (regs->cs & (1<<2))) && (address >> 32))
++		return 1;
++#endif
++	return 0;
++}
++
++static int is_f00f_bug(struct pt_regs *regs, unsigned long address)
++{
++#ifdef CONFIG_X86_F00F_BUG
++	unsigned long nr;
++
++	/*
++	 * Pentium F0 0F C7 C8 bug workaround:
++	 */
++	if (boot_cpu_has_bug(X86_BUG_F00F)) {
++		nr = (address - idt_descr.address) >> 3;
++
++		if (nr == 6) {
++			do_invalid_op(regs, 0);
++			return 1;
++		}
++	}
++#endif
++	return 0;
++}
++
++static const char nx_warning[] = KERN_CRIT
++"kernel tried to execute NX-protected page - exploit attempt? (uid: %d)\n";
++static const char smep_warning[] = KERN_CRIT
++"unable to execute userspace code (SMEP?) (uid: %d)\n";
++
++static void
++show_fault_oops(struct pt_regs *regs, unsigned long error_code,
++		unsigned long address)
++{
++	if (!oops_may_print())
++		return;
++
++	if (error_code & X86_PF_INSTR) {
++		unsigned int level;
++		pgd_t *pgd;
++		pte_t *pte;
++
++		pgd = __va(read_cr3_pa());
++		pgd += pgd_index(address);
++
++		pte = lookup_address_in_pgd(pgd, address, &level);
++
++		if (pte && pte_present(*pte) && !pte_exec(*pte))
++			printk(nx_warning, from_kuid(&init_user_ns, current_uid()));
++		if (pte && pte_present(*pte) && pte_exec(*pte) &&
++				(pgd_flags(*pgd) & _PAGE_USER) &&
++				(__read_cr4() & X86_CR4_SMEP))
++			printk(smep_warning, from_kuid(&init_user_ns, current_uid()));
++	}
++
++	printk(KERN_ALERT "BUG: unable to handle kernel ");
++	if (address < PAGE_SIZE)
++		printk(KERN_CONT "NULL pointer dereference");
++	else
++		printk(KERN_CONT "paging request");
++
++	printk(KERN_CONT " at %p\n", (void *) address);
++	printk(KERN_ALERT "IP: %pS\n", (void *)regs->ip);
++
++	dump_pagetable(address);
++}
++
++static noinline void
++pgtable_bad(struct pt_regs *regs, unsigned long error_code,
++	    unsigned long address)
++{
++	struct task_struct *tsk;
++	unsigned long flags;
++	int sig;
++
++	flags = oops_begin();
++	tsk = current;
++	sig = SIGKILL;
++
++	printk(KERN_ALERT "%s: Corrupted page table at address %lx\n",
++	       tsk->comm, address);
++	dump_pagetable(address);
++
++	tsk->thread.cr2		= address;
++	tsk->thread.trap_nr	= X86_TRAP_PF;
++	tsk->thread.error_code	= error_code;
++
++	if (__die("Bad pagetable", regs, error_code))
++		sig = 0;
++
++	oops_end(flags, regs, sig);
++}
++
++static noinline void
++no_context(struct pt_regs *regs, unsigned long error_code,
++	   unsigned long address, int signal, int si_code)
++{
++	struct task_struct *tsk = current;
++	unsigned long flags;
++	int sig;
++
++	/* Are we prepared to handle this kernel fault? */
++	if (fixup_exception(regs, X86_TRAP_PF)) {
++		/*
++		 * Any interrupt that takes a fault gets the fixup. This makes
++		 * the below recursive fault logic only apply to a faults from
++		 * task context.
++		 */
++		if (in_interrupt())
++			return;
++
++		/*
++		 * Per the above we're !in_interrupt(), aka. task context.
++		 *
++		 * In this case we need to make sure we're not recursively
++		 * faulting through the emulate_vsyscall() logic.
++		 */
++		if (current->thread.sig_on_uaccess_err && signal) {
++			tsk->thread.trap_nr = X86_TRAP_PF;
++			tsk->thread.error_code = error_code | X86_PF_USER;
++			tsk->thread.cr2 = address;
++
++			/* XXX: hwpoison faults will set the wrong code. */
++			force_sig_info_fault(signal, si_code, address,
++					     tsk, NULL, 0);
++		}
++
++		/*
++		 * Barring that, we can do the fixup and be happy.
++		 */
++		return;
++	}
++
++#ifdef CONFIG_VMAP_STACK
++	/*
++	 * Stack overflow?  During boot, we can fault near the initial
++	 * stack in the direct map, but that's not an overflow -- check
++	 * that we're in vmalloc space to avoid this.
++	 */
++	if (is_vmalloc_addr((void *)address) &&
++	    (((unsigned long)tsk->stack - 1 - address < PAGE_SIZE) ||
++	     address - ((unsigned long)tsk->stack + THREAD_SIZE) < PAGE_SIZE)) {
++		unsigned long stack = this_cpu_read(orig_ist.ist[DOUBLEFAULT_STACK]) - sizeof(void *);
++		/*
++		 * We're likely to be running with very little stack space
++		 * left.  It's plausible that we'd hit this condition but
++		 * double-fault even before we get this far, in which case
++		 * we're fine: the double-fault handler will deal with it.
++		 *
++		 * We don't want to make it all the way into the oops code
++		 * and then double-fault, though, because we're likely to
++		 * break the console driver and lose most of the stack dump.
++		 */
++		asm volatile ("movq %[stack], %%rsp\n\t"
++			      "call handle_stack_overflow\n\t"
++			      "1: jmp 1b"
++			      : ASM_CALL_CONSTRAINT
++			      : "D" ("kernel stack overflow (page fault)"),
++				"S" (regs), "d" (address),
++				[stack] "rm" (stack));
++		unreachable();
++	}
++#endif
++
++	/*
++	 * 32-bit:
++	 *
++	 *   Valid to do another page fault here, because if this fault
++	 *   had been triggered by is_prefetch fixup_exception would have
++	 *   handled it.
++	 *
++	 * 64-bit:
++	 *
++	 *   Hall of shame of CPU/BIOS bugs.
++	 */
++	if (is_prefetch(regs, error_code, address))
++		return;
++
++	if (is_errata93(regs, address))
++		return;
++
++	/*
++	 * Oops. The kernel tried to access some bad page. We'll have to
++	 * terminate things with extreme prejudice:
++	 */
++	flags = oops_begin();
++
++	show_fault_oops(regs, error_code, address);
++
++	if (task_stack_end_corrupted(tsk))
++		printk(KERN_EMERG "Thread overran stack, or stack corrupted\n");
++
++	tsk->thread.cr2		= address;
++	tsk->thread.trap_nr	= X86_TRAP_PF;
++	tsk->thread.error_code	= error_code;
++
++	sig = SIGKILL;
++	if (__die("Oops", regs, error_code))
++		sig = 0;
++
++	/* Executive summary in case the body of the oops scrolled away */
++	printk(KERN_DEFAULT "CR2: %016lx\n", address);
++
++	oops_end(flags, regs, sig);
++}
++
++/*
++ * Print out info about fatal segfaults, if the show_unhandled_signals
++ * sysctl is set:
++ */
++static inline void
++show_signal_msg(struct pt_regs *regs, unsigned long error_code,
++		unsigned long address, struct task_struct *tsk)
++{
++	if (!unhandled_signal(tsk, SIGSEGV))
++		return;
++
++	if (!printk_ratelimit())
++		return;
++
++	printk("%s%s[%d]: segfault at %lx ip %p sp %p error %lx",
++		task_pid_nr(tsk) > 1 ? KERN_INFO : KERN_EMERG,
++		tsk->comm, task_pid_nr(tsk), address,
++		(void *)regs->ip, (void *)regs->sp, error_code);
++
++	print_vma_addr(KERN_CONT " in ", regs->ip);
++
++	printk(KERN_CONT "\n");
++}
++
++static void
++__bad_area_nosemaphore(struct pt_regs *regs, unsigned long error_code,
++		       unsigned long address, u32 *pkey, int si_code)
++{
++	struct task_struct *tsk = current;
++
++	/* User mode accesses just cause a SIGSEGV */
++	if (error_code & X86_PF_USER) {
++		/*
++		 * It's possible to have interrupts off here:
++		 */
++		local_irq_enable();
++
++		/*
++		 * Valid to do another page fault here because this one came
++		 * from user space:
++		 */
++		if (is_prefetch(regs, error_code, address))
++			return;
++
++		if (is_errata100(regs, address))
++			return;
++
++#ifdef CONFIG_X86_64
++		/*
++		 * Instruction fetch faults in the vsyscall page might need
++		 * emulation.
++		 */
++		if (unlikely((error_code & X86_PF_INSTR) &&
++			     ((address & ~0xfff) == VSYSCALL_ADDR))) {
++			if (emulate_vsyscall(regs, address))
++				return;
++		}
++#endif
++
++		/*
++		 * To avoid leaking information about the kernel page table
++		 * layout, pretend that user-mode accesses to kernel addresses
++		 * are always protection faults.
++		 */
++		if (address >= TASK_SIZE_MAX)
++			error_code |= X86_PF_PROT;
++
++		if (likely(show_unhandled_signals))
++			show_signal_msg(regs, error_code, address, tsk);
++
++		tsk->thread.cr2		= address;
++		tsk->thread.error_code	= error_code;
++		tsk->thread.trap_nr	= X86_TRAP_PF;
++
++		force_sig_info_fault(SIGSEGV, si_code, address, tsk, pkey, 0);
++
++		return;
++	}
++
++	if (is_f00f_bug(regs, address))
++		return;
++
++	no_context(regs, error_code, address, SIGSEGV, si_code);
++}
++
++static noinline void
++bad_area_nosemaphore(struct pt_regs *regs, unsigned long error_code,
++		     unsigned long address, u32 *pkey)
++{
++	__bad_area_nosemaphore(regs, error_code, address, pkey, SEGV_MAPERR);
++}
++
++static void
++__bad_area(struct pt_regs *regs, unsigned long error_code,
++	   unsigned long address,  struct vm_area_struct *vma, int si_code)
++{
++	struct mm_struct *mm = current->mm;
++	u32 pkey;
++
++	if (vma)
++		pkey = vma_pkey(vma);
++
++	/*
++	 * Something tried to access memory that isn't in our memory map..
++	 * Fix it, but check if it's kernel or user first..
++	 */
++	up_read(&mm->mmap_sem);
++
++	__bad_area_nosemaphore(regs, error_code, address,
++			       (vma) ? &pkey : NULL, si_code);
++}
++
++static noinline void
++bad_area(struct pt_regs *regs, unsigned long error_code, unsigned long address)
++{
++	__bad_area(regs, error_code, address, NULL, SEGV_MAPERR);
++}
++
++static inline bool bad_area_access_from_pkeys(unsigned long error_code,
++		struct vm_area_struct *vma)
++{
++	/* This code is always called on the current mm */
++	bool foreign = false;
++
++	if (!boot_cpu_has(X86_FEATURE_OSPKE))
++		return false;
++	if (error_code & X86_PF_PK)
++		return true;
++	/* this checks permission keys on the VMA: */
++	if (!arch_vma_access_permitted(vma, (error_code & X86_PF_WRITE),
++				       (error_code & X86_PF_INSTR), foreign))
++		return true;
++	return false;
++}
++
++static noinline void
++bad_area_access_error(struct pt_regs *regs, unsigned long error_code,
++		      unsigned long address, struct vm_area_struct *vma)
++{
++	/*
++	 * This OSPKE check is not strictly necessary at runtime.
++	 * But, doing it this way allows compiler optimizations
++	 * if pkeys are compiled out.
++	 */
++	if (bad_area_access_from_pkeys(error_code, vma))
++		__bad_area(regs, error_code, address, vma, SEGV_PKUERR);
++	else
++		__bad_area(regs, error_code, address, vma, SEGV_ACCERR);
++}
++
++static void
++do_sigbus(struct pt_regs *regs, unsigned long error_code, unsigned long address,
++	  u32 *pkey, unsigned int fault)
++{
++	struct task_struct *tsk = current;
++	int code = BUS_ADRERR;
++
++	/* Kernel mode? Handle exceptions or die: */
++	if (!(error_code & X86_PF_USER)) {
++		no_context(regs, error_code, address, SIGBUS, BUS_ADRERR);
++		return;
++	}
++
++	/* User-space => ok to do another page fault: */
++	if (is_prefetch(regs, error_code, address))
++		return;
++
++	tsk->thread.cr2		= address;
++	tsk->thread.error_code	= error_code;
++	tsk->thread.trap_nr	= X86_TRAP_PF;
++
++#ifdef CONFIG_MEMORY_FAILURE
++	if (fault & (VM_FAULT_HWPOISON|VM_FAULT_HWPOISON_LARGE)) {
++		printk(KERN_ERR
++	"MCE: Killing %s:%d due to hardware memory corruption fault at %lx\n",
++			tsk->comm, tsk->pid, address);
++		code = BUS_MCEERR_AR;
++	}
++#endif
++	force_sig_info_fault(SIGBUS, code, address, tsk, pkey, fault);
++}
++
++static noinline void
++mm_fault_error(struct pt_regs *regs, unsigned long error_code,
++	       unsigned long address, u32 *pkey, unsigned int fault)
++{
++	if (fatal_signal_pending(current) && !(error_code & X86_PF_USER)) {
++		no_context(regs, error_code, address, 0, 0);
++		return;
++	}
++
++	if (fault & VM_FAULT_OOM) {
++		/* Kernel mode? Handle exceptions or die: */
++		if (!(error_code & X86_PF_USER)) {
++			no_context(regs, error_code, address,
++				   SIGSEGV, SEGV_MAPERR);
++			return;
++		}
++
++		/*
++		 * We ran out of memory, call the OOM killer, and return the
++		 * userspace (which will retry the fault, or kill us if we got
++		 * oom-killed):
++		 */
++		pagefault_out_of_memory();
++	} else {
++		if (fault & (VM_FAULT_SIGBUS|VM_FAULT_HWPOISON|
++			     VM_FAULT_HWPOISON_LARGE))
++			do_sigbus(regs, error_code, address, pkey, fault);
++		else if (fault & VM_FAULT_SIGSEGV)
++			bad_area_nosemaphore(regs, error_code, address, pkey);
++		else
++			BUG();
++	}
++}
++
++static int spurious_fault_check(unsigned long error_code, pte_t *pte)
++{
++	if ((error_code & X86_PF_WRITE) && !pte_write(*pte))
++		return 0;
++
++	if ((error_code & X86_PF_INSTR) && !pte_exec(*pte))
++		return 0;
++	/*
++	 * Note: We do not do lazy flushing on protection key
++	 * changes, so no spurious fault will ever set X86_PF_PK.
++	 */
++	if ((error_code & X86_PF_PK))
++		return 1;
++
++	return 1;
++}
++
++/*
++ * Handle a spurious fault caused by a stale TLB entry.
++ *
++ * This allows us to lazily refresh the TLB when increasing the
++ * permissions of a kernel page (RO -> RW or NX -> X).  Doing it
++ * eagerly is very expensive since that implies doing a full
++ * cross-processor TLB flush, even if no stale TLB entries exist
++ * on other processors.
++ *
++ * Spurious faults may only occur if the TLB contains an entry with
++ * fewer permission than the page table entry.  Non-present (P = 0)
++ * and reserved bit (R = 1) faults are never spurious.
++ *
++ * There are no security implications to leaving a stale TLB when
++ * increasing the permissions on a page.
++ *
++ * Returns non-zero if a spurious fault was handled, zero otherwise.
++ *
++ * See Intel Developer's Manual Vol 3 Section 4.10.4.3, bullet 3
++ * (Optional Invalidation).
++ */
++static noinline int
++spurious_fault(unsigned long error_code, unsigned long address)
++{
++	pgd_t *pgd;
++	p4d_t *p4d;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *pte;
++	int ret;
++
++	/*
++	 * Only writes to RO or instruction fetches from NX may cause
++	 * spurious faults.
++	 *
++	 * These could be from user or supervisor accesses but the TLB
++	 * is only lazily flushed after a kernel mapping protection
++	 * change, so user accesses are not expected to cause spurious
++	 * faults.
++	 */
++	if (error_code != (X86_PF_WRITE | X86_PF_PROT) &&
++	    error_code != (X86_PF_INSTR | X86_PF_PROT))
++		return 0;
++
++	pgd = init_mm.pgd + pgd_index(address);
++	if (!pgd_present(*pgd))
++		return 0;
++
++	p4d = p4d_offset(pgd, address);
++	if (!p4d_present(*p4d))
++		return 0;
++
++	if (p4d_large(*p4d))
++		return spurious_fault_check(error_code, (pte_t *) p4d);
++
++	pud = pud_offset(p4d, address);
++	if (!pud_present(*pud))
++		return 0;
++
++	if (pud_large(*pud))
++		return spurious_fault_check(error_code, (pte_t *) pud);
++
++	pmd = pmd_offset(pud, address);
++	if (!pmd_present(*pmd))
++		return 0;
++
++	if (pmd_large(*pmd))
++		return spurious_fault_check(error_code, (pte_t *) pmd);
++
++	pte = pte_offset_kernel(pmd, address);
++	if (!pte_present(*pte))
++		return 0;
++
++	ret = spurious_fault_check(error_code, pte);
++	if (!ret)
++		return 0;
++
++	/*
++	 * Make sure we have permissions in PMD.
++	 * If not, then there's a bug in the page tables:
++	 */
++	ret = spurious_fault_check(error_code, (pte_t *) pmd);
++	WARN_ONCE(!ret, "PMD has incorrect permission bits\n");
++
++	return ret;
++}
++NOKPROBE_SYMBOL(spurious_fault);
++
++int show_unhandled_signals = 1;
++
++static inline int
++access_error(unsigned long error_code, struct vm_area_struct *vma)
++{
++	/* This is only called for the current mm, so: */
++	bool foreign = false;
++
++	/*
++	 * Read or write was blocked by protection keys.  This is
++	 * always an unconditional error and can never result in
++	 * a follow-up action to resolve the fault, like a COW.
++	 */
++	if (error_code & X86_PF_PK)
++		return 1;
++
++	/*
++	 * Make sure to check the VMA so that we do not perform
++	 * faults just to hit a X86_PF_PK as soon as we fill in a
++	 * page.
++	 */
++	if (!arch_vma_access_permitted(vma, (error_code & X86_PF_WRITE),
++				       (error_code & X86_PF_INSTR), foreign))
++		return 1;
++
++	if (error_code & X86_PF_WRITE) {
++		/* write, present and write, not present: */
++		if (unlikely(!(vma->vm_flags & VM_WRITE)))
++			return 1;
++		return 0;
++	}
++
++	/* read, present: */
++	if (unlikely(error_code & X86_PF_PROT))
++		return 1;
++
++	/* read, not present: */
++	if (unlikely(!(vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE))))
++		return 1;
++
++	return 0;
++}
++
++static int fault_in_kernel_space(unsigned long address)
++{
++	return address >= TASK_SIZE_MAX;
++}
++
++static inline bool smap_violation(int error_code, struct pt_regs *regs)
++{
++	if (!IS_ENABLED(CONFIG_X86_SMAP))
++		return false;
++
++	if (!static_cpu_has(X86_FEATURE_SMAP))
++		return false;
++
++	if (error_code & X86_PF_USER)
++		return false;
++
++	if (!user_mode(regs) && (regs->flags & X86_EFLAGS_AC))
++		return false;
++
++	return true;
++}
++
++/*
++ * This routine handles page faults.  It determines the address,
++ * and the problem, and then passes it off to one of the appropriate
++ * routines.
++ */
++static noinline void
++__do_page_fault(struct pt_regs *regs, unsigned long error_code,
++		unsigned long address)
++{
++	struct vm_area_struct *vma;
++	struct task_struct *tsk;
++	struct mm_struct *mm;
++	int fault, major = 0;
++	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
++	u32 pkey;
++
++	tsk = current;
++	mm = tsk->mm;
++
++	prefetchw(&mm->mmap_sem);
++
++	if (unlikely(kmmio_fault(regs, address)))
++		return;
++
++	/*
++	 * We fault-in kernel-space virtual memory on-demand. The
++	 * 'reference' page table is init_mm.pgd.
++	 *
++	 * NOTE! We MUST NOT take any locks for this case. We may
++	 * be in an interrupt or a critical region, and should
++	 * only copy the information from the master page table,
++	 * nothing more.
++	 *
++	 * This verifies that the fault happens in kernel space
++	 * (error_code & 4) == 0, and that the fault was not a
++	 * protection error (error_code & 9) == 0.
++	 */
++	if (unlikely(fault_in_kernel_space(address))) {
++		if (!(error_code & (X86_PF_RSVD | X86_PF_USER | X86_PF_PROT))) {
++			if (vmalloc_fault(address) >= 0)
++				return;
++		}
++
++		/* Can handle a stale RO->RW TLB: */
++		if (spurious_fault(error_code, address))
++			return;
++
++		/* kprobes don't want to hook the spurious faults: */
++		if (kprobes_fault(regs))
++			return;
++		/*
++		 * Don't take the mm semaphore here. If we fixup a prefetch
++		 * fault we could otherwise deadlock:
++		 */
++		bad_area_nosemaphore(regs, error_code, address, NULL);
++
++		return;
++	}
++
++	/* kprobes don't want to hook the spurious faults: */
++	if (unlikely(kprobes_fault(regs)))
++		return;
++
++	if (unlikely(error_code & X86_PF_RSVD))
++		pgtable_bad(regs, error_code, address);
++
++	if (unlikely(smap_violation(error_code, regs))) {
++		bad_area_nosemaphore(regs, error_code, address, NULL);
++		return;
++	}
++
++	/*
++	 * If we're in an interrupt, have no user context or are running
++	 * in a region with pagefaults disabled then we must not take the fault
++	 */
++	if (unlikely(faulthandler_disabled() || !mm)) {
++		bad_area_nosemaphore(regs, error_code, address, NULL);
++		return;
++	}
++
++	/*
++	 * It's safe to allow irq's after cr2 has been saved and the
++	 * vmalloc fault has been handled.
++	 *
++	 * User-mode registers count as a user access even for any
++	 * potential system fault or CPU buglet:
++	 */
++	if (user_mode(regs)) {
++		local_irq_enable();
++		error_code |= X86_PF_USER;
++		flags |= FAULT_FLAG_USER;
++	} else {
++		if (regs->flags & X86_EFLAGS_IF)
++			local_irq_enable();
++	}
++
++	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
++
++	if (error_code & X86_PF_WRITE)
++		flags |= FAULT_FLAG_WRITE;
++	if (error_code & X86_PF_INSTR)
++		flags |= FAULT_FLAG_INSTRUCTION;
++
++	/*
++	 * When running in the kernel we expect faults to occur only to
++	 * addresses in user space.  All other faults represent errors in
++	 * the kernel and should generate an OOPS.  Unfortunately, in the
++	 * case of an erroneous fault occurring in a code path which already
++	 * holds mmap_sem we will deadlock attempting to validate the fault
++	 * against the address space.  Luckily the kernel only validly
++	 * references user space from well defined areas of code, which are
++	 * listed in the exceptions table.
++	 *
++	 * As the vast majority of faults will be valid we will only perform
++	 * the source reference check when there is a possibility of a
++	 * deadlock. Attempt to lock the address space, if we cannot we then
++	 * validate the source. If this is invalid we can skip the address
++	 * space check, thus avoiding the deadlock:
++	 */
++	if (unlikely(!down_read_trylock(&mm->mmap_sem))) {
++		if (!(error_code & X86_PF_USER) &&
++		    !search_exception_tables(regs->ip)) {
++			bad_area_nosemaphore(regs, error_code, address, NULL);
++			return;
++		}
++retry:
++		down_read(&mm->mmap_sem);
++	} else {
++		/*
++		 * The above down_read_trylock() might have succeeded in
++		 * which case we'll have missed the might_sleep() from
++		 * down_read():
++		 */
++		might_sleep();
++	}
++
++	vma = find_vma(mm, address);
++	if (unlikely(!vma)) {
++		bad_area(regs, error_code, address);
++		return;
++	}
++	if (likely(vma->vm_start <= address))
++		goto good_area;
++	if (unlikely(!(vma->vm_flags & VM_GROWSDOWN))) {
++		bad_area(regs, error_code, address);
++		return;
++	}
++	if (error_code & X86_PF_USER) {
++		/*
++		 * Accessing the stack below %sp is always a bug.
++		 * The large cushion allows instructions like enter
++		 * and pusha to work. ("enter $65535, $31" pushes
++		 * 32 pointers and then decrements %sp by 65535.)
++		 */
++		if (unlikely(address + 65536 + 32 * sizeof(unsigned long) < regs->sp)) {
++			bad_area(regs, error_code, address);
++			return;
++		}
++	}
++	if (unlikely(expand_stack(vma, address))) {
++		bad_area(regs, error_code, address);
++		return;
++	}
++
++	/*
++	 * Ok, we have a good vm_area for this memory access, so
++	 * we can handle it..
++	 */
++good_area:
++	if (unlikely(access_error(error_code, vma))) {
++		bad_area_access_error(regs, error_code, address, vma);
++		return;
++	}
++
++	/*
++	 * If for any reason at all we couldn't handle the fault,
++	 * make sure we exit gracefully rather than endlessly redo
++	 * the fault.  Since we never set FAULT_FLAG_RETRY_NOWAIT, if
++	 * we get VM_FAULT_RETRY back, the mmap_sem has been unlocked.
++	 *
++	 * Note that handle_userfault() may also release and reacquire mmap_sem
++	 * (and not return with VM_FAULT_RETRY), when returning to userland to
++	 * repeat the page fault later with a VM_FAULT_NOPAGE retval
++	 * (potentially after handling any pending signal during the return to
++	 * userland). The return to userland is identified whenever
++	 * FAULT_FLAG_USER|FAULT_FLAG_KILLABLE are both set in flags.
++	 * Thus we have to be careful about not touching vma after handling the
++	 * fault, so we read the pkey beforehand.
++	 */
++	pkey = vma_pkey(vma);
++	fault = handle_mm_fault(vma, address, flags);
++	major |= fault & VM_FAULT_MAJOR;
++
++	/*
++	 * If we need to retry the mmap_sem has already been released,
++	 * and if there is a fatal signal pending there is no guarantee
++	 * that we made any progress. Handle this case first.
++	 */
++	if (unlikely(fault & VM_FAULT_RETRY)) {
++		/* Retry at most once */
++		if (flags & FAULT_FLAG_ALLOW_RETRY) {
++			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
++			if (!fatal_signal_pending(tsk))
++				goto retry;
++		}
++
++		/* User mode? Just return to handle the fatal exception */
++		if (flags & FAULT_FLAG_USER)
++			return;
++
++		/* Not returning to user mode? Handle exceptions or die: */
++		no_context(regs, error_code, address, SIGBUS, BUS_ADRERR);
++		return;
++	}
++
++	up_read(&mm->mmap_sem);
++	if (unlikely(fault & VM_FAULT_ERROR)) {
++		mm_fault_error(regs, error_code, address, &pkey, fault);
++		return;
++	}
++
++	/*
++	 * Major/minor page fault accounting. If any of the events
++	 * returned VM_FAULT_MAJOR, we account it as a major fault.
++	 */
++	if (major) {
++		tsk->maj_flt++;
++		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1, regs, address);
++	} else {
++		tsk->min_flt++;
++		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1, regs, address);
++	}
++
++	check_v8086_mode(regs, address, tsk);
++}
++NOKPROBE_SYMBOL(__do_page_fault);
++
++static nokprobe_inline void
++trace_page_fault_entries(unsigned long address, struct pt_regs *regs,
++			 unsigned long error_code)
++{
++	if (user_mode(regs))
++		trace_page_fault_user(address, regs, error_code);
++	else
++		trace_page_fault_kernel(address, regs, error_code);
++}
++
++/*
++ * We must have this function blacklisted from kprobes, tagged with notrace
++ * and call read_cr2() before calling anything else. To avoid calling any
++ * kind of tracing machinery before we've observed the CR2 value.
++ *
++ * exception_{enter,exit}() contains all sorts of tracepoints.
++ */
++dotraplinkage void notrace
++do_page_fault(struct pt_regs *regs, unsigned long error_code)
++{
++	unsigned long address = read_cr2(); /* Get the faulting address */
++	enum ctx_state prev_state;
++
++	prev_state = exception_enter();
++	if (trace_pagefault_enabled())
++		trace_page_fault_entries(address, regs, error_code);
++
++	__do_page_fault(regs, error_code, address);
++	exception_exit(prev_state);
++}
++NOKPROBE_SYMBOL(do_page_fault);
