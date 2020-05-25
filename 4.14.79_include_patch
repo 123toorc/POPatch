@@ -1,3 +1,59 @@
+diff -uprN 4.14.79/include/linux/mm.h 4.14.79_popcorn/include/linux/mm.h
+--- 4.14.79/include/linux/mm.h	2018-11-04 08:52:51.000000000 -0500
++++ 4.14.79_popcorn/include/linux/mm.h	2020-05-24 22:41:30.706905631 -0400
+@@ -218,6 +218,10 @@ extern unsigned int kobjsize(const void
+ #define VM_HIGH_ARCH_4	BIT(VM_HIGH_ARCH_BIT_4)
+ #endif /* CONFIG_ARCH_USES_HIGH_VMA_FLAGS */
+ 
++#ifdef CONFIG_POPCORN
++#define VM_FETCH_LOCAL	0x00800000
++#endif
++
+ #if defined(CONFIG_X86)
+ # define VM_PAT		VM_ARCH_1	/* PAT reserves whole VMA at once (x86) */
+ #if defined (CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS)
+@@ -1186,6 +1190,11 @@ static inline void clear_page_pfmemalloc
+ 
+ #define VM_FAULT_HWPOISON_LARGE_MASK 0xf000 /* encodes hpage index for large hwpoison */
+ 
++#ifdef CONFIG_POPCORN
++#define VM_FAULT_CONTINUE	0x1000
++#define VM_FAULT_KILLED		0x2000
++#endif
++
+ #define VM_FAULT_ERROR	(VM_FAULT_OOM | VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV | \
+ 			 VM_FAULT_HWPOISON | VM_FAULT_HWPOISON_LARGE | \
+ 			 VM_FAULT_FALLBACK)
+diff -uprN 4.14.79/include/linux/mm_types.h 4.14.79_popcorn/include/linux/mm_types.h
+--- 4.14.79/include/linux/mm_types.h	2018-11-04 08:52:51.000000000 -0500
++++ 4.14.79_popcorn/include/linux/mm_types.h	2020-05-24 22:41:30.706905631 -0400
+@@ -17,6 +17,10 @@
+ 
+ #include <asm/mmu.h>
+ 
++#ifdef CONFIG_POPCORN
++struct remote_context;
++#endif
++
+ #ifndef AT_VECTOR_SIZE_ARCH
+ #define AT_VECTOR_SIZE_ARCH 0
+ #endif
+@@ -501,10 +505,15 @@ struct mm_struct {
+ #endif
+ 	struct work_struct async_put_work;
+ 
++#ifdef CONFIG_POPCORN
++       struct remote_context *remote;
++#endif
++
+ #if IS_ENABLED(CONFIG_HMM)
+ 	/* HMM needs to track a few things per mm */
+ 	struct hmm *hmm;
+ #endif
++
+ } __randomize_layout;
+ 
+ extern struct mm_struct init_mm;
 diff -uprN 4.14.79/include/linux/sched.h 4.14.79_popcorn/include/linux/sched.h
 --- 4.14.79/include/linux/sched.h	2018-11-04 08:52:51.000000000 -0500
 +++ 4.14.79_popcorn/include/linux/sched.h	2020-05-24 22:41:30.746905507 -0400
